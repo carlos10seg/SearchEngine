@@ -1,0 +1,71 @@
+
+*** Suggesting queries ***
+𝑆𝑐𝑜𝑟𝑒(𝐶𝑄, 𝑞′) =>
+-𝐹𝑟𝑒𝑞(𝐶𝑄) =  𝐹𝑟𝑒𝑞(𝐶𝑄) is the frequency of occurrence of 𝐶𝑄 in QL divided by the maximum frequency of occurrence of any query in QL
+-𝑀𝑜𝑑(𝐶𝑄,𝑞′) is the number of sessions in which q’ is modified to 𝐶𝑄 divided by the total number of sessions in QL in which q’ appears
+-𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′) is min difference between the time occurrence of q’ and 𝐶𝑄 across sessions in which both q’ and 𝐶𝑄 appear over length of the longest session in QL.
+
+
+-example:
+q' = 
+CQ = 
+
+
+
+Questions:
+𝑀𝑜𝑑(𝐶𝑄,𝑞′) is the number of sessions in which q’ is modified to 𝐶𝑄 => what would be to be modified to?
+It's the probability that each q' changes to CQ.
+cuantas sesiones cambiaron de 'hello' a 'hello world' en cuantas sesiones sobre el total => eso es la probabilidad de mod
+q' = 'hello'
+CQ1 = hello world
+CQ2 = hello my
+=> I have to look for all sessions which 𝑞′ appears and then look for the next queries of the same session (same user) to see if 𝑞′ has added words, if it does (like 'hello world' as an example) then add it to the dictionary with word as key and a counter as value. Then for each one calculate the probability based on the total number of sessions in QL in which q’ appears
+
+
+
+Can we talk more about the Time calculation? How should we calculate it? what about the longest session?
+𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′) is min difference between the time occurrence of q’ and 𝐶𝑄 across sessions in which both q’ and 𝐶𝑄 appear over length of the longest session in QL.
+
+This is the min of every freq, mod, time across all data. Do we need to sum those values or how do they interact with 1?
+1 − 𝑀𝑖𝑛{𝐹𝑟𝑒𝑞(𝐶𝑄), 𝑀𝑜𝑑(𝐶𝑄, 𝑞′), 𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′)} => el mínimo de esos tres valores
+
+
+
+this will not generate a query suggestion for this user for query 'texas', right ?
+8482956,texas,2006-05-30 15:55:30
+8482956,texas,2006-05-30 15:56:09
+8482956,tyler tx,2006-05-30 15:57:53
+8482956,texas health insurers,2006-05-30 16:03:53
+
+
+in Mod, the part:  the total number of sessions in QL in which q’ appears. This means 
+
+q = texas
+
+1 texas 10:30
+1 texas uni 10:31
+1 texas university 10:32
+1 texas university students 10:33
+
+
+1 texas 10:30
+1 uni 10:31
+1 texas university 10:32
+1 texas university students 10:33
+
+
+
+***************
+
+Technical Notes
+To start mongo: 
+cd  ~/Software/mongodb/bin
+./mongod
+
+To start redis:
+redis-server /usr/local/etc/redis.conf
+
+
+
+
+
