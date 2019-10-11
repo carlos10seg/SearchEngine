@@ -22,10 +22,27 @@ class DbManager:
     def get_index_term(self, term):
         return self.inverted_index.find_one({'term': term})
 
-    def save_many_in_index(self, index_structure):
-        for i in range(len(index_structure.Terms)):
-            term = index_structure.Terms[i]
-            frequency = index_structure.Frequencies[i]
+    # def save_many_in_index(self, index_structure):
+    #     for i in range(len(index_structure.Terms)):
+    #         term = index_structure.Terms[i]
+    #         frequency = index_structure.Frequencies[i]
+    #         item_from_db = self.get_index_term(term)
+    #         if (item_from_db == None):
+    #             self.insert_index_term(term, frequency)
+    #         else:
+    #             new_frequency = item_from_db['frequency'] + ',' + frequency
+    #             self.update_index_term(term, new_frequency)
+
+    def save_array_many_in_index(self, index_structures):
+        dict_to_save = {}
+        for index_structure in index_structures:
+            for i in range(len(index_structure.Terms)):
+                term = index_structure.Terms[i]
+                frequency = index_structure.Frequencies[i]
+                dict_to_save[term] = frequency
+
+        for term in sorted(dict_to_save):
+            frequency = dict_to_save[term]
             item_from_db = self.get_index_term(term)
             if (item_from_db == None):
                 self.insert_index_term(term, frequency)

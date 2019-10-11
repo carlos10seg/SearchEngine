@@ -58,14 +58,44 @@ q = texas
 ***************
 
 Technical Notes
+
 To start mongo: 
 cd  ~/Software/mongodb/bin
 ./mongod
+- ./mongo 	=> mongo client
+https://docs.mongodb.com/manual/reference/mongo-shell/
+use <db>
+To remove all documents in my collections:
+db.collection_documents.drop()
+db.inverted_index.drop()
+
+db.getCollection('collection_documents').find({}).length()
+db.getCollection('inverted_index').find({}).length()
+
 
 To start redis:
 redis-server /usr/local/etc/redis.conf
+redis-cli => redis client
 
 
+We're using python3:
+python3 controller.py
 
 
+Execution Logs:
+Test: Save in mongo documents and index
+1000 => 173.997 seconds (2.90 minutes)
+for 1.6 million docs, it will take 80 hours
 
+Test: Save index in memory only
+1000 => 10 seconds in multiprocessing. 32 seconds in serie.
+2000 => 16 seconds in multiprocessing. 77.31 seconds in serie.
+20000 => 166.38 seconds in multiprocessing.  seconds in serie.
+for 1.6 million docs, it will take 36.97 hours
+
+Test: Save index in redis only
+1000 => 24.65 seconds in multiprocessing. 
+2000 => 43.63 seconds in multiprocessing.
+
+Test: Save in mongo the index
+1000 => 145.92 seconds

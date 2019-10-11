@@ -22,5 +22,16 @@ class RedisManager:
             frequency = index_structure.Frequencies[i] + ','
             self.appendValue(term, frequency)
     
+    def save_array_many_in_index(self, index_structures):
+        dict_to_save = {}
+        for index_structure in index_structures:
+            for i in range(len(index_structure.Terms)):                
+                term = index_structure.Terms[i]
+                frequency = index_structure.Frequencies[i] + ','
+                dict_to_save[term] = frequency
+                #self.appendValue(term, frequency)
+        for i in sorted(dict_to_save):
+            self.appendValue(i, dict_to_save[i])
+
     def remove_all(self):
         self.r.flushdb()

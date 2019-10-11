@@ -1,0 +1,6 @@
+data/
+P1__Project_Description.pdf
+*.pyc
+search_engine_code/__pycache__/
+search_engine_code/penv/
+search_engine_code/.vscode/

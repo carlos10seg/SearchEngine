@@ -27,7 +27,7 @@ class Engine:
     
     def get_candidate_documents(self, query):
         """
-        1) look for each stemmed query term in redis to get their documents
+        1) look for each stemmed query term in redis to get their documents e.g. => 1:5,2:10
         2) create a dictionary with doc:count
         3) only return the docs that have all query terms, if there are less than 50, 
             then reduce the amount of minimum query terms until you get 50 or more.

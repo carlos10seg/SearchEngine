@@ -55,7 +55,9 @@ class StructureBuilder:
                     if (w in terms):
                         currentIndex = terms.index(w)
                         if (mode == 2):
-                            if (docValue not in frequencies[currentIndex]):
+                            # we count all the words and add them only once, 
+                            # so if there are more than one word, it is only added once to the frequencies but counted correctly
+                            if (docValue not in frequencies[currentIndex]): 
                                 frequencies[currentIndex] += ',' + docValue
                         else:
                             frequencies[currentIndex] += ',' + docValue
@@ -79,3 +81,70 @@ class StructureBuilder:
 
         #invertedIndex = pd.DataFrame.from_dict(indexDict)        
         return IndexStructure(terms, frequencies)
+    
+    def get_stemmed_terms_frequencies_from_doc(self, doc):
+        # create the inverted index
+        #Steps:
+        # 1. Create the word-document list
+        # 2. Sort the word-document list by word
+        # 3. Add the position to the document column and remove duplicates because of the position value.
+
+        #for step 1:
+        #indexDict = {'Term': [], 'Document': []}
+        #for step 3:
+        indexDict = {'Term': [], 'Document:position': []}
+
+        terms = []
+        frequencies = []
+        docCount = 1;
+        cleaned_corpus = []
+        mode = 2 # 1: Position | 2: Frequency
+        ps = PorterStemmer()
+        
+        finalDoc = ''
+        words = word_tokenize(doc['content'].lower())
+        wordPosition = 1;
+        countWords = 0;
+        for w in words:
+            countWords = words.count(w)
+            w = ps.stem(w) # get the stem
+            if w not in self.stopwords: # only use words not in stopwords
+                finalDoc += w + ' '
+                # only for step 1:
+                #terms.append(w)
+                #frequencies.append(str(docCount))            
+                #for step 3:
+                #docValue = str(docCount) + ':' + (str(wordPosition) if mode == 1 else str(countWords))
+                docValue = str(doc['id']) + ':' + (str(wordPosition) if mode == 1 else str(countWords))
+                if (w in terms):
+                    currentIndex = terms.index(w)
+                    if (mode == 2):
+                        # we count all the words and add them only once, 
+                        # so if there are more than one word, it is only added once to the frequencies but counted correctly
+                        if (docValue not in frequencies[currentIndex]): 
+                            frequencies[currentIndex] += ',' + docValue
+                    else:
+                        frequencies[currentIndex] += ',' + docValue
+                else:
+                    terms.append(w)
+                    frequencies.append(w + '-' + docValue)
+                wordPosition += 1
+        docCount += 1
+        cleaned_corpus.append(finalDoc)
+       
+       
+        # for step 3:
+        terms.sort()
+        frequencies.sort(key=self.__natural_keys)
+        for i in range(len(frequencies)):
+            frequencies[i] = re.sub(r'.*-', '', frequencies[i])
+            
+        #indexDict['Term'] = terms
+        # only for step 1:
+        #indexDict['Document'] = frequencies
+        # for step 3:
+        #indexDict['Document:frequency'] = frequencies
+
+        #invertedIndex = pd.DataFrame.from_dict(indexDict)        
+        return IndexStructure(terms, frequencies)
+    
