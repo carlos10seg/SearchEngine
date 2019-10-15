@@ -10,6 +10,9 @@ class DbManager:
     def insert_many_in_documents(self, list):
         self.collection_documents.insert_many(list)
 
+    def insert_document(self, doc):
+        self.collection_documents.insert_one(doc)
+
     def insert_many_in_index(self, list):
         self.inverted_index.insert_many(list)
 

@@ -76,7 +76,13 @@ db.getCollection('inverted_index').find({}).length()
 To start redis:
 redis-server /usr/local/etc/redis.conf
 redis-cli => redis client
-
+FLUSHALL => to delete all keys from all Redis databases
+FLUSHDB => To delete all keys of the selected Redis database only
+del myhash => delete my entire mynahs
+HGETALL myhash => get all keys and values from myhash
+	 HGETALL collection_documents 
+	 HGETALL inverted_index
+HLEN myhash => returns the size of elements
 
 We're using python3:
 python3 controller.py
@@ -96,6 +102,11 @@ for 1.6 million docs, it will take 36.97 hours
 Test: Save index in redis only
 1000 => 24.65 seconds in multiprocessing. 
 2000 => 43.63 seconds in multiprocessing.
+20000 => 184.97 seconds in multiprocessing.
 
 Test: Save in mongo the index
 1000 => 145.92 seconds
+
+
+
+
