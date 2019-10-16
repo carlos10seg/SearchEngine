@@ -33,8 +33,9 @@ class StructureManager:
 
                 doc_id = row[2]
                 doc_content = row[0]
-                if (doc_content[0] == '"' and doc_content[-1] == '"'):
-                    doc_content = doc_content[1:-1]
+                
+                #if (doc_content[0] == '"' and doc_content[-1] == '"'):
+                #    doc_content = doc_content[1:-1]
                 # add the document to the collection in redis
                 redisManager.setValueInHashSet(redisManager.collection_documents, doc_id, doc_content)
                 # add to the sublist waiting to save the list in a batch operation

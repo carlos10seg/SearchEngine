@@ -1,4 +1,5 @@
 import operator
+import math
 from structure_builder import StructureBuilder
 from redis_manager import RedisManager
 
@@ -15,6 +16,9 @@ class Engine:
             docFreq = doc_freq[1]
             if docId == docId:
                 return docFreq
+
+    def calc_tf_idf(self, freq, max_freq_doc, N_documents, ni):
+        return (freq/max_freq_doc) * math.log2(N_documents/ni)
 
     # 𝑇𝐹(𝑤,𝑑)= 𝑓𝑟𝑒𝑞(𝑤,𝑑) / 𝑚𝑎𝑥𝑑 
     # w is a non-stop, stemmed/lemmatized word in q
@@ -42,7 +46,7 @@ class Engine:
         builder = StructureBuilder()
         relevant_score = 0
         for doc_id in doc_ids:
-            
+
             for q_term in q_terms:
                 q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
                 max_freq_doc = redisManager.getValueFromHashSet(redisManager.max_freq_doc, doc_id)
