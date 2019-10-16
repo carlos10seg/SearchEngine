@@ -3,6 +3,19 @@ from structure_builder import StructureBuilder
 from redis_manager import RedisManager
 
 class Engine:
+    docs_count = 1662757
+    
+    def __init__(self):
+        self.q_terms_freqs = {}
+
+    def get_q_doc_freq(self, q_term, doc_id):
+        for doc_with_freq in self.q_terms_freqs[q_term]:
+            doc_freq = doc_with_freq.split(':') # 0-index is docId | 1-index is the doc frequency
+            docId = doc_freq[0]
+            docFreq = doc_freq[1]
+            if docId == docId:
+                return docFreq
+
     # 𝑇𝐹(𝑤,𝑑)= 𝑓𝑟𝑒𝑞(𝑤,𝑑) / 𝑚𝑎𝑥𝑑 
     # w is a non-stop, stemmed/lemmatized word in q
     # freq(w, d) is the number of times w appears in d
@@ -11,7 +24,7 @@ class Engine:
     # 𝐼𝐷𝐹(𝑤)=𝑙𝑜𝑔2 𝑁 / 𝑛𝑤
     # N is the number of documents in DC
     # nw is the number of documents in DC in which w appears at least once.
-    def rank(self, docs, query):
+    def rank(self, doc_ids, q_terms):
         """
         docs => array, every 
             doc => should have an array of terms
@@ -25,9 +38,20 @@ class Engine:
         I need the number of documents in DC (constant)
         I need the number of documents in DC in which w appears at least once.
         """
-        
+        redisManager = RedisManager()
+        builder = StructureBuilder()
+        relevant_score = 0
+        for doc_id in doc_ids:
+            
+            for q_term in q_terms:
+                q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
+                max_freq_doc = redisManager.getValueFromHashSet(redisManager.max_freq_doc, doc_id)
+                # number of documents in DC in which q_term appears at least once.
+                n_docs_q_term = len(self.q_terms_freqs[q_term])
+
+
     
-    def get_candidate_documents(self, query):
+    def get_candidate_documents_ids(self, q_terms):
         """
         1) look for each stemmed query term in redis to get their documents e.g. => 1:5,2:10,4:22
         2) create a dictionary with doc:count
@@ -36,18 +60,17 @@ class Engine:
             
         --for every doc that already exists add the current freq
         --3) order the dictionary by the most frequent and return the id docs list.
-        """
+        """        
         MAX_DOCUMENTS_TO_RETRIEVE = 100
-        candidate_documents = []
-        builder = StructureBuilder()
+        candidate_documents = []        
         redisManager = RedisManager()
-        q_terms = builder.get_stemmed_tems(query)
         candidate_all_resources = {} # used to track every candidate document => doc:totalFrequency
         unique_documents = {} # only tracks the unique_documents => doc:count
         for q_t in q_terms:
             doc_freqs = redisManager.getValueFromHashSet(redisManager.inverted_index, q_t)
             if doc_freqs != None:
                 docs_with_frequency = doc_freqs.split(',')
+                self.q_terms_freqs[q_t] = docs_with_frequency
                 for doc_with_freq in docs_with_frequency:
                     if len(doc_with_freq) > 1:
                         doc_freq = doc_with_freq.split(':') # 0-index is docId | 1-index is the doc frequency
@@ -81,3 +104,9 @@ class Engine:
             candidate_documents = candidate_documents[0:MAX_DOCUMENTS_TO_RETRIEVE]
         
         return candidate_documents
+
+    def get_ranked_docs(self, query):
+        builder = StructureBuilder()
+        q_terms = builder.get_stemmed_tems(query)
+        candidate_docs = self.get_candidate_documents_ids(q_terms)        
+

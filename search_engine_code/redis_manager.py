@@ -7,8 +7,9 @@ class RedisManager:
     # collections: inverted_index | collection_documents
     def __init__(self):
         self.r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-        self.inverted_index = 'inverted_index'
-        self.collection_documents = 'collection_documents'        
+        self.inverted_index = 'inv_index'
+        self.collection_documents = 'col_docs'
+        self.max_freq_doc = 'max_freq_doc'
         
     def setValue(self, key, value):
         self.r.set(key, value)
@@ -39,6 +40,7 @@ class RedisManager:
                 # else:
                 #     self.setValueInHashSet(self.inverted_index, term, frequency)
                 self.appendValue(term, frequency)
+            self.setValueInHashSet(self.max_freq_doc, index_structure.doc_id, index_structure.get_max_freq())
     
     def save_array_many_in_index(self, index_structures):
         dict_to_save = {}

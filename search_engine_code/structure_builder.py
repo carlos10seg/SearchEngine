@@ -102,7 +102,7 @@ class StructureBuilder:
         #indexDict['Document:frequency'] = frequencies
 
         #invertedIndex = pd.DataFrame.from_dict(indexDict)        
-        return IndexStructure(terms, frequencies)
+        return IndexStructure(terms, frequencies, doc['id'])
     
 
     def get_stemmed_terms_frequencies(self, corpus):
@@ -174,4 +174,4 @@ class StructureBuilder:
         #indexDict['Document:frequency'] = frequencies
 
         #invertedIndex = pd.DataFrame.from_dict(indexDict)        
-        return IndexStructure(terms, frequencies)
+        return IndexStructure(terms, frequencies, None)
