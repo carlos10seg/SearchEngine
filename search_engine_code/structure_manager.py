@@ -13,24 +13,23 @@ csv.field_size_limit(sys.maxsize)
 class StructureManager:
 
     def build_index_and_doc_collection_from_csv(self):
-        count = 0
+        count = -1
         docsCount = 1662757
-        batchSize = 1000
+        batchSize = 10
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
         redisManager = RedisManager()
         sub_list = []
-        from_list = 1 #1
-        to_list = 1001 #100001
+        from_list = 11 #1
+        to_list = 20 #100000
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
-            for row in csv_content:
-                count += 1
+            for row in csv_content:                
                  #or count < from_list): 
-                if (count == 1 or count < from_list):  #skip the headers or the previous processed documents
+                count += 1
+                if (count == 0 or count < from_list):  #skip the headers or the previous processed documents                    
                     continue
-
                 doc_id = row[2]
                 doc_content = row[0]
                 
@@ -56,7 +55,7 @@ class StructureManager:
                     print("%d : reminder: %s" % (count ,datetime.datetime.now()))
                 
                 # temp => sample testing
-                if count > to_list:
+                if count == to_list:
                     break
 
         print("saved in redis: %s" % (datetime.datetime.now())) 
