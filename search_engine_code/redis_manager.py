@@ -31,6 +31,7 @@ class RedisManager:
     
     def save_many_in_index(self, index_structures):
         for index_structure in index_structures:
+            self.setValueInHashSet(self.max_freq_doc, index_structure.doc_id, index_structure.get_max_freq())
             for i in range(len(index_structure.Terms)):
                 term = index_structure.Terms[i]
                 frequency = index_structure.Frequencies[i] + ','
@@ -40,7 +41,6 @@ class RedisManager:
                 # else:
                 #     self.setValueInHashSet(self.inverted_index, term, frequency)
                 self.appendValue(term, frequency)
-            self.setValueInHashSet(self.max_freq_doc, index_structure.doc_id, index_structure.get_max_freq())
     
     def save_array_many_in_index(self, index_structures):
         dict_to_save = {}
