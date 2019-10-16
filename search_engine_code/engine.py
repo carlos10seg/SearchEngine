@@ -44,15 +44,27 @@ class Engine:
         """
         redisManager = RedisManager()
         builder = StructureBuilder()
-        relevant_score = 0
-        for doc_id in doc_ids:
+        docs_relevant_scores = {}
 
+        for doc_id in doc_ids:
+            #relevant_score = 0
+            tf_idf_sum = 0
+            #denom_di_sum = 0
+            #denom_qi_sum = 0
             for q_term in q_terms:
                 q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
                 max_freq_doc = redisManager.getValueFromHashSet(redisManager.max_freq_doc, doc_id)
                 # number of documents in DC in which q_term appears at least once.
                 n_docs_q_term = len(self.q_terms_freqs[q_term])
 
+                tf_idf_doc = calc_tf_idf(q_doc_freq, max_freq_doc, docs_count, n_docs_q_term)
+                #tf_idf_q = calc_tf_idf(frequencies_q[i], max_freq_q, N, number_documents_with_terms[i])
+                #tf_idf = tf_idf_doc # * tf_idf_q
+                tf_idf_sum += tf_idf_doc
+            docs_relevant_scores[doc_id] = tf_idf_sum
+        
+        sorted_candidate_all_resources = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
+        return sorted_candidate_all_resources
 
     
     def get_candidate_documents_ids(self, q_terms):

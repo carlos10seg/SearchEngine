@@ -15,14 +15,14 @@ class StructureManager:
     def build_index_and_doc_collection_from_csv(self):
         count = -1
         docsCount = 1662757
-        batchSize = 10
+        batchSize = 1000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
         redisManager = RedisManager()
         sub_list = []
-        from_list = 11 #1
-        to_list = 20 #100000
+        from_list = 1 #1
+        to_list = 1000 #100000
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
             for row in csv_content:                
