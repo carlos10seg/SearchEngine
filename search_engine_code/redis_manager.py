@@ -28,11 +28,17 @@ class RedisManager:
     def setValuesInHashSet(self, collection, valuesDictionary):
         self.r.hmset(collection, valuesDictionary)
     
-    def save_many_in_index(self, index_structure):
-        for i in range(len(index_structure.Terms)):
-            term = index_structure.Terms[i]
-            frequency = index_structure.Frequencies[i] + ','
-            self.appendValue(term, frequency)
+    def save_many_in_index(self, index_structures):
+        for index_structure in index_structures:
+            for i in range(len(index_structure.Terms)):
+                term = index_structure.Terms[i]
+                frequency = index_structure.Frequencies[i] + ','
+                # freq_in_db = self.getValueFromHashSet(self.inverted_index, term)                
+                # if freq_in_db:                    
+                #     self.setValueInHashSet(self.inverted_index, term, freq_in_db + frequency)
+                # else:
+                #     self.setValueInHashSet(self.inverted_index, term, frequency)
+                self.appendValue(term, frequency)
     
     def save_array_many_in_index(self, index_structures):
         dict_to_save = {}

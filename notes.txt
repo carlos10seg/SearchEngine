@@ -83,6 +83,8 @@ HGETALL myhash => get all keys and values from myhash
 	 HGETALL collection_documents 
 	 HGETALL inverted_index
 HLEN myhash => returns the size of elements
+HGET collection_documents 1000
+GET tubul
 
 We're using python3:
 python3 controller.py
@@ -106,6 +108,17 @@ Test: Save index in redis only
 
 Test: Save in mongo the index
 1000 => 145.92 seconds
+
+
+ubuntu commands for mongodb:
+sudo systemctl enable mongod
+sudo systemctl start mongod 
+
+sudo systemctl stop mongod
+sudo systemctl restart mongod 
+
+test on ubuntu:
+start time: 2019-10-14 19:29:35.110371
 
 
 

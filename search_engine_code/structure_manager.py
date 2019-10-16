@@ -17,7 +17,7 @@ class StructureManager:
         docsCount = 1662757
         batchSize = 1000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
-        remainder = docsCount % batchSize
+        #remainder = docsCount % batchSize
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
         redisManager = RedisManager()
@@ -80,27 +80,31 @@ class StructureManager:
         docsCount = 1662757
         batchSize = 1000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
-        remainder = docsCount % batchSize
+        #remainder = docsCount % batchSize
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
         redisManager = RedisManager()
-        index_structures = []        
+        #index_structures = []        
         sub_list = []
+        from_list = 100002 #1
+        to_list = 200002 #100001
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
             #pool = multiprocessing.Pool()
             for row in csv_content:
                 count += 1
-                if (count == 1): # skip the headers
+                 #or count < from_list): 
+                if (count == 1 or count < from_list):  #skip the headers or the previous processed documents
                     continue
                 # add the document to the collection in redis
                 redisManager.setValueInHashSet(redisManager.collection_documents, row[2], row[0])
                 # add to the sublist waiting to save the list in a batch operation
                 sub_list.append({'id': row[2], 'content': row[0]})
                 if count % batchSize == 0: # every 1000 documents send the work to process pool
-                    with multiprocessing.Pool() as pool:
+                    with multiprocessing.Pool(processes=max(multiprocessing.cpu_count()-1, 1)) as pool:
                         # create the index structure
-                        index_structures += pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
+                        index_structure = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
+                        redisManager.save_many_in_index(index_structure)
                     #index_structures += builder.get_stemmed_terms_frequencies_from_doc(sub_list) 
                     print("%d : %d : %s" % (loops, count, datetime.datetime.now()))
                     sub_list = [] # empty the list for the next ones.
@@ -108,15 +112,16 @@ class StructureManager:
                 if loops <= 1:
                     with multiprocessing.Pool() as pool:
                         # create the index structure
-                        index_structures += pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
+                        index_structure = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
+                        redisManager.save_many_in_index(index_structure)
                     print("%d : reminder: %s" % (count ,datetime.datetime.now()))
                 
                 # temp => sample testing
-                if count >= 2001:
+                if count >= to_list:
                     break
 
-        print("finish to build structure in memory: %s" % (datetime.datetime.now()))         
-        redisManager.save_array_many_in_index(index_structures)
+        #print("finish to build structure in memory: %s" % (datetime.datetime.now()))         
+        #redisManager.save_array_many_in_index(index_structures)
         print("saved in redis: %s" % (datetime.datetime.now())) 
 
     def build_all_structure(self):
