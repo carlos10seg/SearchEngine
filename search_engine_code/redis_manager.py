@@ -7,9 +7,9 @@ class RedisManager:
     # collections: inverted_index | collection_documents
     def __init__(self):
         self.r = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-        self.inverted_index = 'inv_index'
-        self.collection_documents = 'col_docs'
-        self.max_freq_doc = 'max_freq_doc'
+        self.inverted_index = '__inv_index__'
+        self.collection_documents = '__col_docs__'
+        self.max_freq_doc = '__max_freq_doc__'
         
     def setValue(self, key, value):
         self.r.set(key, value)

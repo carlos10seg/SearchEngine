@@ -23,10 +23,10 @@ class StructureBuilder:
     def __natural_keys(self, text):
         return [self.__atoi(c) for c in re.split(r'(\d+)', text) ]
 
-    def get_stemmed_tems(self, query):
+    def get_stemmed_tems(self, text):
         stemmed_terms = []
         ps = PorterStemmer()
-        words = word_tokenize(query.lower())
+        words = word_tokenize(text.lower())
         for w in words:
             w = ps.stem(w) # get the stem
             if w not in self.stopwords: # only use words not in stopwords
