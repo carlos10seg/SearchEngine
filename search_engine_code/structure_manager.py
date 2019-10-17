@@ -60,7 +60,7 @@ class StructureManager:
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
                         
                         #redisManager.save_many_in_index(index_structures)
-                        db_manager.save_many_in_index(index_structures)
+                        dbManager.save_many_in_index(index_structures)
 
                     print("%d : reminder: %s" % (count ,datetime.datetime.now()))
                 

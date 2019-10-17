@@ -14,6 +14,9 @@ class DbManager:
     def insert_document(self, doc):
         self.collection_documents.insert_one(doc)
 
+    def get_document(self, doc_id):
+        return self.collection_documents.find_one({'id': doc_id}, {'content':1, "_id": False})['content']
+
     def insert_many_in_index(self, list):
         self.inverted_index.insert_many(list)
 
@@ -24,10 +27,13 @@ class DbManager:
         self.inverted_index.insert_one({'term': term, 'frequency': frequency})
     
     def get_index_term(self, term):
-        return self.inverted_index.find_one({'term': term})
+        return self.inverted_index.find_one({'term': term}, {'frequency':1, "_id": False})['frequency']
 
     def insert_max_freq_doc(self, doc_id, max_freq):
         self.max_freq_doc.insert_one({'doc_id': doc_id, 'max_freq': max_freq})
+
+    def get_max_freq_doc(self, doc_id):
+        return self.max_freq_doc.find_one({'doc_id': doc_id}, {'max_freq':1, "_id": False})['max_freq']
 
     # def save_many_in_index(self, index_structure):
     #     for i in range(len(index_structure.Terms)):

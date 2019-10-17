@@ -3,6 +3,7 @@ import math
 import re
 from structure_builder import StructureBuilder
 from redis_manager import RedisManager
+from db_manager import DbManager
 
 class Engine:    
     
@@ -44,6 +45,7 @@ class Engine:
         I need the number of documents in DC in which w appears at least once.
         """
         redisManager = RedisManager()
+        dbManager = DbManager()
         builder = StructureBuilder()
         docs_relevant_scores = {}
 
@@ -54,7 +56,8 @@ class Engine:
             #denom_qi_sum = 0
             for q_term in q_terms:
                 q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
-                max_freq_doc = redisManager.getValueFromHashSet(redisManager.max_freq_doc, doc_id)
+                #max_freq_doc = redisManager.getValueFromHashSet(redisManager.max_freq_doc, doc_id)
+                max_freq_doc = dbManager.get_max_freq_doc(doc_id)
                 # number of documents in DC in which q_term appears at least once.
                 n_docs_q_term = len(self.q_terms_freqs[q_term])
 
@@ -80,10 +83,12 @@ class Engine:
         MAX_DOCUMENTS_TO_RETRIEVE = 50
         candidate_documents = []        
         redisManager = RedisManager()
+        dbManager = DbManager()
         candidate_all_resources = {} # used to track every candidate document => doc:totalFrequency
         unique_documents = {} # only tracks the unique_documents => doc:count
         for q_t in q_terms:
-            doc_freqs = redisManager.getValue(q_t)
+            #doc_freqs = redisManager.getValue(q_t)
+            doc_freqs = dbManager.get_index_term(q_t)
             if doc_freqs != None:
                 docs_with_frequency = doc_freqs.split(',')
                 self.q_terms_freqs[q_t] = docs_with_frequency
@@ -132,13 +137,15 @@ class Engine:
 
     def add_snippets(self, ranked_docs, q_terms):
         redisManager = RedisManager()
+        dbManager = DbManager()
         builder = StructureBuilder()
         docs_with_snippets = []
         
         for ranked_doc in ranked_docs:
             doc_id = ranked_doc[0]
             docs_relevant_scores = {}     
-            doc = redisManager.getValueFromHashSet(redisManager.collection_documents, doc_id)
+            #doc = redisManager.getValueFromHashSet(redisManager.collection_documents, doc_id)
+            doc = dbManager.get_document(doc_id)
             sentences = self.get_doc_sentences(doc)
             title = sentences.pop(0)['content']
             N = len(sentences)
