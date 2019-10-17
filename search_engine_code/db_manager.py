@@ -6,6 +6,7 @@ class DbManager:
         db = client.searchengine
         self.collection_documents = db['collection_documents']
         self.inverted_index = db['inverted_index']
+        self.max_freq_doc = db['max_freq_doc']
     
     def insert_many_in_documents(self, list):
         self.collection_documents.insert_many(list)
@@ -17,13 +18,16 @@ class DbManager:
         self.inverted_index.insert_many(list)
 
     def update_index_term(self, term, frequency):
-        self.inverted_index.update_one({'term': term}, {'$set': {'$frequency', frequency}})
+        self.inverted_index.update_one({'term': term}, {'$set': {'frequency': frequency}})
 
     def insert_index_term(self, term, frequency):
-        return self.inverted_index.insert_one({'term': term, 'frequency': frequency})
+        self.inverted_index.insert_one({'term': term, 'frequency': frequency})
     
     def get_index_term(self, term):
         return self.inverted_index.find_one({'term': term})
+
+    def insert_max_freq_doc(self, doc_id, max_freq):
+        self.max_freq_doc.insert_one({'doc_id': doc_id, 'max_freq': max_freq})
 
     # def save_many_in_index(self, index_structure):
     #     for i in range(len(index_structure.Terms)):
@@ -36,22 +40,34 @@ class DbManager:
     #             new_frequency = item_from_db['frequency'] + ',' + frequency
     #             self.update_index_term(term, new_frequency)
 
-    def save_array_many_in_index(self, index_structures):
-        dict_to_save = {}
+    def save_many_in_index(self, index_structures):
         for index_structure in index_structures:
+            self.insert_max_freq_doc(index_structure.doc_id, index_structure.get_max_freq())
             for i in range(len(index_structure.Terms)):
                 term = index_structure.Terms[i]
                 frequency = index_structure.Frequencies[i]
-                dict_to_save[term] = frequency
+                item_from_db = self.get_index_term(term)
+                if (item_from_db == None):
+                    self.insert_index_term(term, frequency)
+                else:
+                    new_frequency = item_from_db['frequency'] + ',' + frequency
+                    self.update_index_term(term, new_frequency)
 
-        for term in sorted(dict_to_save):
-            frequency = dict_to_save[term]
-            item_from_db = self.get_index_term(term)
-            if (item_from_db == None):
-                self.insert_index_term(term, frequency)
-            else:
-                new_frequency = item_from_db['frequency'] + ',' + frequency
-                self.update_index_term(term, new_frequency)
+        # dict_to_save = {}
+        # for index_structure in index_structures:
+        #     for i in range(len(index_structure.Terms)):
+        #         term = index_structure.Terms[i]
+        #         frequency = index_structure.Frequencies[i]
+        #         dict_to_save[term] = frequency
+
+        # for term in sorted(dict_to_save):
+        #     frequency = dict_to_save[term]
+        #     item_from_db = self.get_index_term(term)
+        #     if (item_from_db == None):
+        #         self.insert_index_term(term, frequency)
+        #     else:
+        #         new_frequency = item_from_db['frequency'] + ',' + frequency
+        #         self.update_index_term(term, new_frequency)
 
 '''
 

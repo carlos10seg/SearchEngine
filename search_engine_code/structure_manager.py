@@ -20,6 +20,7 @@ class StructureManager:
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
         redisManager = RedisManager()
+        dbManager = DbManager()
         sub_list = []
         from_list = 1 #1
         to_list = 1000 #100000
@@ -36,14 +37,20 @@ class StructureManager:
                 #if (doc_content[0] == '"' and doc_content[-1] == '"'):
                 #    doc_content = doc_content[1:-1]
                 # add the document to the collection in redis
-                redisManager.setValueInHashSet(redisManager.collection_documents, doc_id, doc_content)
+                
+                #redisManager.setValueInHashSet(redisManager.collection_documents, doc_id, doc_content)
+                dbManager.insert_document({'id': doc_id, 'content': doc_content})
+                
                 # add to the sublist waiting to save the list in a batch operation
                 sub_list.append({'id': doc_id, 'content': doc_content})
                 if count % batchSize == 0: # every 1000 documents send the work to process pool
                     with multiprocessing.Pool(processes=max(multiprocessing.cpu_count()-1, 1)) as pool:
                         # create the index structure
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
-                        redisManager.save_many_in_index(index_structures)
+                        
+                        #redisManager.save_many_in_index(index_structures)
+                        dbManager.save_many_in_index(index_structures)
+
                     print("%d : %d : %s" % (loops, count, datetime.datetime.now()))
                     sub_list = [] # empty the list for the next ones.
                     loops -= 1
@@ -51,7 +58,10 @@ class StructureManager:
                     with multiprocessing.Pool() as pool:
                         # create the index structure
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
-                        redisManager.save_many_in_index(index_structures)
+                        
+                        #redisManager.save_many_in_index(index_structures)
+                        db_manager.save_many_in_index(index_structures)
+
                     print("%d : reminder: %s" % (count ,datetime.datetime.now()))
                 
                 # temp => sample testing
