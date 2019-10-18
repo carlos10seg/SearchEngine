@@ -15,8 +15,8 @@ class StructureManager:
 
     def build_index_and_doc_collection_from_csv(self):
         count = -1
-        docsCount = 1662757
-        batchSize = 1000 #50000
+        docsCount = 1662 #1662757
+        batchSize = 100 #10000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
@@ -24,8 +24,8 @@ class StructureManager:
         dbManager = DbManager()
         pickleManager = PickleManager()
         sub_list = []
-        from_list = 100000 #1
-        to_list = 115000 #1650000 #100000
+        from_list = 1 #1
+        to_list = 1662 #1662757 #1650000 #100000
         # drop and create the collections in mongo
         dbManager.rebuild_structure()
         # delete all pickle files
@@ -62,7 +62,7 @@ class StructureManager:
                     print("%d : %d : %s" % (loops, count, datetime.datetime.now()))
                     sub_list = [] # empty the list for the next ones.
                     loops -= 1
-                if loops <= 1:
+                if loops <= 1 and count == to_list and len(sub_list) > 0:
                     with multiprocessing.Pool() as pool:
                         # create the index structure
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
@@ -70,7 +70,7 @@ class StructureManager:
                         #redisManager.save_many_in_index(index_structures)
                         #dbManager.save_many_in_index(index_structures)
                         pickleManager.save_index_and_max_freq(index_structures, str(count))
-                    print("%d : reminder: %s" % (count ,datetime.datetime.now()))
+                    print("%d : %d : reminder: %s" % (loops, count ,datetime.datetime.now()))
                 
                 # temp => sample testing
                 if count == to_list:
