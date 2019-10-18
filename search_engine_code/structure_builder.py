@@ -61,32 +61,52 @@ class StructureBuilder:
         countWords = 0
      
         for w in words:
+            # only words with length greater than 2
+            if len(w) <= 2 or any(ch.isdigit() for ch in w):
+                continue
+
             countWords = words.count(w)
+
+            # if the last character is a dot then remove it.
+            if w[-1] == ".":
+                w = w[:-1]
+            
+            if w[0] == "'" or w[0] == "-" or w[0] == "." or w[0] == "=" or w[0] == "\\":
+                w = w[1:]
+            
+            if len(w) <= 2:
+                continue
+
             #w = ps.stem(w) # get the stem
 
             #if w not in self.stopwords: # only use words not in stopwords
-            finalDoc += w + ' '
+            #finalDoc += w + ' '
             # only for step 1:
             #terms.append(w)
             #frequencies.append(str(docCount))            
             #for step 3:
             #docValue = str(docCount) + ':' + (str(wordPosition) if mode == 1 else str(countWords))
             docValue = str(doc['id']) + ':' + (str(wordPosition) if mode == 1 else str(countWords))
-            if (w in terms):
-                currentIndex = terms.index(w)
-                if (mode == 2):
-                    # we count all the words and add them only once, 
-                    # so if there are more than one word, it is only added once to the frequencies but counted correctly
-                    if (docValue not in frequencies[currentIndex]): 
-                        frequencies[currentIndex] += ',' + docValue
-                else:
-                    frequencies[currentIndex] += ',' + docValue
-            else:
+            if w not in terms:
                 terms.append(w)
                 frequencies.append(w + '-' + docValue)
+
+            # if (w in terms):
+            #     currentIndex = terms.index(w)
+            #     if (mode == 2):
+            #         # we count all the words and add them only once, 
+            #         # so if there are more than one word, it is only added once to the frequencies but counted correctly
+            #         if (docValue not in frequencies[currentIndex]): 
+            #             frequencies[currentIndex] += '|' + docValue
+            #     else:
+            #         frequencies[currentIndex] += '|' + docValue
+            # else:
+            #     terms.append(w)
+            #     frequencies.append(w + '-' + docValue)
+
             wordPosition += 1
         docCount += 1
-        cleaned_corpus.append(finalDoc)
+        #cleaned_corpus.append(finalDoc)
        
        
         # for step 3:
@@ -104,8 +124,7 @@ class StructureBuilder:
         #invertedIndex = pd.DataFrame.from_dict(indexDict)        
         return IndexStructure(terms, frequencies, doc['id'])
     
-
-    def get_stemmed_terms_frequencies(self, corpus):
+    def __old_get_stemmed_terms_frequencies(self, corpus):
         # create the inverted index
         #Steps:
         # 1. Create the word-document list

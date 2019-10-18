@@ -7,6 +7,7 @@ from document import Document
 from structure_builder import StructureBuilder
 from db_manager import DbManager
 from redis_manager import RedisManager
+from pickle_manager import PickleManager
 
 csv.field_size_limit(sys.maxsize)
 
@@ -15,15 +16,21 @@ class StructureManager:
     def build_index_and_doc_collection_from_csv(self):
         count = -1
         docsCount = 1662757
-        batchSize = 1000
+        batchSize = 1000 #50000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
         redisManager = RedisManager()
         dbManager = DbManager()
+        pickleManager = PickleManager()
         sub_list = []
-        from_list = 1 #1
-        to_list = 1000 #100000
+        from_list = 100000 #1
+        to_list = 115000 #1650000 #100000
+        # drop and create the collections in mongo
+        dbManager.rebuild_structure()
+        # delete all pickle files
+        pickleManager.remove_all_files()
+
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
             for row in csv_content:                
@@ -31,7 +38,7 @@ class StructureManager:
                 count += 1
                 if (count == 0 or count < from_list):  #skip the headers or the previous processed documents                    
                     continue
-                doc_id = row[2]
+                doc_id = int(row[2])
                 doc_content = row[0]
                 
                 #if (doc_content[0] == '"' and doc_content[-1] == '"'):
@@ -43,13 +50,14 @@ class StructureManager:
                 
                 # add to the sublist waiting to save the list in a batch operation
                 sub_list.append({'id': doc_id, 'content': doc_content})
-                if count % batchSize == 0: # every 1000 documents send the work to process pool
+                if count % batchSize == 0: # every batchSize documents send the work to process pool
                     with multiprocessing.Pool(processes=max(multiprocessing.cpu_count()-1, 1)) as pool:
                         # create the index structure
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
                         
                         #redisManager.save_many_in_index(index_structures)
-                        dbManager.save_many_in_index(index_structures)
+                        #dbManager.save_many_in_index(index_structures)
+                        pickleManager.save_index_and_max_freq(index_structures, str(count))
 
                     print("%d : %d : %s" % (loops, count, datetime.datetime.now()))
                     sub_list = [] # empty the list for the next ones.
@@ -60,15 +68,30 @@ class StructureManager:
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
                         
                         #redisManager.save_many_in_index(index_structures)
-                        dbManager.save_many_in_index(index_structures)
-
+                        #dbManager.save_many_in_index(index_structures)
+                        pickleManager.save_index_and_max_freq(index_structures, str(count))
                     print("%d : reminder: %s" % (count ,datetime.datetime.now()))
                 
                 # temp => sample testing
                 if count == to_list:
                     break
 
-        print("saved in redis: %s" % (datetime.datetime.now())) 
+        print("Saved docs and max_freq in mongo. Saved index structures in pickles: %s" % (datetime.datetime.now())) 
+
+    def build_index_from_pickles(self):
+        dbManager = DbManager()
+        pickleManager = PickleManager()
+        print("merging pickles: %s" % (datetime.datetime.now())) 
+        full_index = pickleManager.merge_index_structures()
+        print("saving full index: %s" % (datetime.datetime.now())) 
+        dbManager.save_full_index(full_index)
+        print("full index saved: %s" % (datetime.datetime.now())) 
+ 
+    def build_all_structure(self):
+        #self.build_documents_collection_from_csv()
+        #self.build_index_from_csv()
+        self.build_index_and_doc_collection_from_csv()
+        self.build_index_from_pickles()
 
     def build_index_from_csv(self):
         count = 0
@@ -132,63 +155,3 @@ class StructureManager:
                     break
         
         print("end time: %s" % (datetime.datetime.now()))
- 
-    def build_all_structure(self):
-        #self.build_documents_collection_from_csv()
-        #self.build_index_from_csv()
-        self.build_index_and_doc_collection_from_csv()
-
-    def build_index_from_csv_old(self):
-        x = 0
-        sub_list = []
-        count = 0 # 1662757
-        max_count = 101 # always end in 1 because the first line is the header
-        builder = StructureBuilder()
-        dbManager = DbManager()
-        redisManager = RedisManager()
-        index_structures = []
-        end_count = 0
-        with open("../data/wikipedia_text_files.csv") as csvfile:
-            csv_content = csv.reader(csvfile, delimiter=',')        
-            for row in csv_content:
-                count += 1
-                if (count == 1): # skip the headers
-                    continue
-                # if (x < 5):
-                #     print(row)
-                #     #print(row[1])
-                #     #print(row[0],row[1],row[2],)
-                # else:
-                #     break
-                # x += 1
-
-                # create a document with id and content and append it to the list
-                #sub_list.append(Document(row[2], row[0]))
-                sub_list.append({'id': row[2], 'content': row[0]})
-                #print(row[0])
-                if (count == max_count):
-                    # save the documents
-                    #dbManager.insert_many_in_documents(sub_list)
-                    with multiprocessing.Pool() as pool:
-                        # create the index structure
-                        index_structures += pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
-                        # save the index structure and update the terms if necessary
-                        #dbManager.save_many_in_index(index_structure)
-                    # create the index structure
-                    #index_structure = builder.get_stemmed_terms_frequencies(sub_list)
-                    # save the index structure and update the terms if necessary
-                    #dbManager.save_many_in_index(index_structure)
-                    #redisManager.save_many_in_index(index_structure)
-                        count = 0
-                        sub_list = []   
-                        end_count += 1
-                        if (end_count > 3):
-                            break
-            # print(len(index_structure))
-            # print('--------')
-            # print(index_structure[0].Terms)
-            # print('--------')
-            # print(index_structure[0].Frequencies)
-            
-            redisManager.save_array_many_in_index(index_structures)
-            #dbManager.save_array_many_in_index(index_structures)

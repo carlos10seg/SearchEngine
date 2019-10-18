@@ -3,10 +3,18 @@ from pymongo import MongoClient
 class DbManager:
     def __init__(self):
         client = MongoClient('localhost', 27017)
-        db = client.searchengine
-        self.collection_documents = db['collection_documents']
-        self.inverted_index = db['inverted_index']
-        self.max_freq_doc = db['max_freq_doc']
+        self.db = client.searchengine
+        self.collection_documents = self.db['collection_documents']        
+        self.max_freq_doc = self.db['max_freq_doc']
+        self.inverted_index = self.db['inverted_index']
+        
+    def rebuild_structure(self):
+        self.db.drop_collection("collection_documents")
+        self.db.drop_collection("max_freq_doc")
+        self.db.drop_collection("inverted_index")
+        self.collection_documents.create_index("id", unique=True)
+        self.max_freq_doc.create_index("doc_id", unique=True)
+        self.inverted_index.create_index("term", unique=True)
     
     def insert_many_in_documents(self, list):
         self.collection_documents.insert_many(list)
@@ -30,7 +38,7 @@ class DbManager:
         return self.inverted_index.find_one({'term': term}, {'frequency':1, "_id": False})['frequency']
 
     def insert_max_freq_doc(self, doc_id, max_freq):
-        self.max_freq_doc.insert_one({'doc_id': doc_id, 'max_freq': max_freq})
+        self.max_freq_doc.insert_one({'doc_id': int(doc_id), 'max_freq': int(max_freq)})
 
     def get_max_freq_doc(self, doc_id):
         return self.max_freq_doc.find_one({'doc_id': doc_id}, {'max_freq':1, "_id": False})['max_freq']
@@ -58,6 +66,10 @@ class DbManager:
                 else:
                     new_frequency = item_from_db['frequency'] + ',' + frequency
                     self.update_index_term(term, new_frequency)
+
+    def save_full_index(self, full_index_structure):
+        for item in full_index_structure: # 0 => term | 1 => frequency
+            self.insert_index_term(item[0], item[1])
 
         # dict_to_save = {}
         # for index_structure in index_structures:

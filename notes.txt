@@ -43,19 +43,22 @@ in Mod, the part:  the total number of sessions in QL in which q’ appears. Thi
 q = texas
 
 1 texas 10:30
-1 texas uni 10:31
-1 texas university 10:32
-1 texas university students 10:33
+1 texas uni 10:31 => candidate
+1 texas university 10:32 => candidate
+1 texas university students 10:33 => candidate
 
 
 1 texas 10:30
 1 uni 10:31
-1 texas university 10:32
-1 texas university students 10:33
+1 texas university 10:32 => candidate
+1 texas university students 10:33 => candidate
+2 texas
+2 texas ss => candidate
+3 texas
+4 texas instr
 
 
-
-***************
+***************************************************************************
 
 Technical Notes
 
@@ -65,12 +68,22 @@ cd  ~/Software/mongodb/bin
 - ./mongo 	=> mongo client
 https://docs.mongodb.com/manual/reference/mongo-shell/
 use <db>
-To remove all documents in my collections:
+To recreate collections:
 db.collection_documents.drop()
 db.inverted_index.drop()
+db.max_freq_doc.drop()
+
+db.createCollection("collection_documents")
+db.createCollection("max_freq_doc")
+db.createCollection("inverted_index")    
+
+db.getCollection('collection_documents').createIndex({id: 1})
+db.getCollection('max_freq_doc').createIndex({doc_id: 1})
+db.getCollection('inverted_index').createIndex({term: 1})
 
 db.getCollection('collection_documents').find({}).length()
 db.getCollection('inverted_index').find({}).length()
+db.getCollection('max_freq_doc').find({}).length()
 
 
 To start redis:
@@ -119,6 +132,19 @@ sudo systemctl restart mongod
 
 test on ubuntu:
 start time: 2019-10-14 19:29:35.110371
+
+
+******************
+Steps
+X = 50 000 docs
+1) Loop by batch size of X
+2) For every doc read, save it to mongo
+3) Calculate the index structures for the batch and loop through them to save a unified index structure for the X docs to save as a pickle file.
+4) Loop the folder of the pickle files and iterate them to build a unified index structure, then save that file and iterate through it to save it in mongo.
+
+
+
+
 
 
 
