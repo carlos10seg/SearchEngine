@@ -1,9 +1,24 @@
 
 *** Suggesting queries ***
 𝑆𝑐𝑜𝑟𝑒(𝐶𝑄, 𝑞′) =>
--𝐹𝑟𝑒𝑞(𝐶𝑄) =  𝐹𝑟𝑒𝑞(𝐶𝑄) is the frequency of occurrence of 𝐶𝑄 in QL divided by the maximum frequency of occurrence of any query in QL
--𝑀𝑜𝑑(𝐶𝑄,𝑞′) is the number of sessions in which q’ is modified to 𝐶𝑄 divided by the total number of sessions in QL in which q’ appears
--𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′) is min difference between the time occurrence of q’ and 𝐶𝑄 across sessions in which both q’ and 𝐶𝑄 appear over length of the longest session in QL.
+-𝐹𝑟𝑒𝑞(𝐶𝑄) =  𝐹𝑟𝑒𝑞(𝐶𝑄) is the frequency of occurrence of 𝐶𝑄 in QL divided by 
+the maximum frequency of occurrence of any query in QL
+
+-𝑀𝑜𝑑(𝐶𝑄,𝑞′) is the number of sessions in which q’ is modified to 𝐶𝑄 divided by 
+the total number of sessions in QL in which q’ appears
+=>
+the number of sessions in which q’ is modified to 𝐶𝑄 => 
+the total number of sessions in QL in which q’ appears => 
+
+
+-𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′) is min difference between the time occurrence of q’ and 
+𝐶𝑄 across sessions in which both q’ and 𝐶𝑄 appear over length of the longest session in QL.
+=>
+min difference between the time occurrence of q’ and 𝐶𝑄 across sessions in which both q’ and 𝐶𝑄 appear 
+length of the longest session in QL.
+
+
+
 
 
 -example:
@@ -23,39 +38,35 @@ CQ2 = hello my
 
 
 
-Can we talk more about the Time calculation? How should we calculate it? what about the longest session?
-𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′) is min difference between the time occurrence of q’ and 𝐶𝑄 across sessions in which both q’ and 𝐶𝑄 appear over length of the longest session in QL.
-
 This is the min of every freq, mod, time across all data. Do we need to sum those values or how do they interact with 1?
 1 − 𝑀𝑖𝑛{𝐹𝑟𝑒𝑞(𝐶𝑄), 𝑀𝑜𝑑(𝐶𝑄, 𝑞′), 𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′)} => el mínimo de esos tres valores
 
-
-
-this will not generate a query suggestion for this user for query 'texas', right ?
-8482956,texas,2006-05-30 15:55:30
-8482956,texas,2006-05-30 15:56:09
-8482956,tyler tx,2006-05-30 15:57:53
-8482956,texas health insurers,2006-05-30 16:03:53
 
 
 in Mod, the part:  the total number of sessions in QL in which q’ appears. This means 
 
 q = texas
 
-1 texas 10:30
+1 texas 10:30 => query
 1 texas uni 10:31 => candidate
 1 texas university 10:32 => candidate
 1 texas university students 10:33 => candidate
 
 
-1 texas 10:30
+1 texas 10:30 => query
 1 uni 10:31
 1 texas university 10:32 => candidate
 1 texas university students 10:33 => candidate
-2 texas
+2 texas => query
 2 texas ss => candidate
-3 texas
+3 texas => query
 4 texas instr
+
+
+QUESTIONS:
+𝑇𝑖𝑚𝑒(𝐶𝑄, 𝑞′) is min difference between the time occurrence of q’ and 𝐶𝑄 across sessions in which both q’ and 𝐶𝑄 appear over length of the longest session in QL.
+Can we talk more about the Time calculation? How should we calculate it? what about the longest session? 
+
 
 
 ***************************************************************************
@@ -145,7 +156,7 @@ X = 50 000 docs
 
 
 
-
+ñ
 
 
 

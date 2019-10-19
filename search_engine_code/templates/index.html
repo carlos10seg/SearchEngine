@@ -1,0 +1,48 @@
+<script type="text/javascript" src="/static/jquery.min.js"></script>
+<div id="search">
+    <input type="text" id="txtQuery" />
+    <input type="button" id="btnSearch" value="Search" />
+    {{ form.v }}
+</div>
+<di id="result">
+    
+</di>
+<span id="tester"></span>
+
+<script type="text/javascript">
+    $(function() {
+        $("#btnSearch").click(function() {
+            search();
+        }); 
+    });
+
+    function getSuggestions() {
+        $.ajax({
+            url: "/suggestions",
+            dataType: "json",
+            data: {
+                query: $("#txtQuery").val()
+            }
+        })
+        .then(function(response){
+            $("#tester").val(response)
+        });
+    }
+
+function search() {
+    $.ajax({
+            url: "/search",
+            method: "POST",
+            dataType: "json",
+            data: {
+                query: $("#txtQuery").val()
+            }
+        })
+        .then(function(response){            
+            response.result.forEach(item => {
+                console.log(item)
+            });
+        });
+}
+
+</script>

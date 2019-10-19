@@ -15,8 +15,8 @@ class StructureManager:
 
     def build_index_and_doc_collection_from_csv(self):
         count = -1
-        docsCount = 1662 #1662757
-        batchSize = 100 #10000
+        docsCount = 1662756 #1662756 => 1662757 - 1 (header)
+        batchSize = 1000 #10000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
@@ -25,7 +25,7 @@ class StructureManager:
         pickleManager = PickleManager()
         sub_list = []
         from_list = 1 #1
-        to_list = 1662 #1662757 #1650000 #100000
+        to_list = 2000 #1662756 #1650000 #100000
         # drop and create the collections in mongo
         dbManager.rebuild_structure()
         # delete all pickle files
@@ -33,7 +33,7 @@ class StructureManager:
 
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
-            for row in csv_content:                
+            for row in csv_content:
                  #or count < from_list): 
                 count += 1
                 if (count == 0 or count < from_list):  #skip the headers or the previous processed documents                    
@@ -88,8 +88,6 @@ class StructureManager:
         print("full index saved: %s" % (datetime.datetime.now())) 
  
     def build_all_structure(self):
-        #self.build_documents_collection_from_csv()
-        #self.build_index_from_csv()
         self.build_index_and_doc_collection_from_csv()
         self.build_index_from_pickles()
 

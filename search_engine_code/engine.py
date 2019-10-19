@@ -126,15 +126,6 @@ class Engine:
         
         return candidate_documents
 
-    def get_ranked_docs_with_snippets(self, query):
-        builder = StructureBuilder()
-        q_terms = builder.get_stemmed_tems(query)
-        candidate_docs = self.get_candidate_documents_ids(q_terms)
-        ranked_docs = self.rank(candidate_docs, q_terms)
-        #print(ranked_docs)
-        docs_with_snippets = self.add_snippets(ranked_docs, q_terms)
-        return docs_with_snippets
-
     def add_snippets(self, ranked_docs, q_terms):
         redisManager = RedisManager()
         dbManager = DbManager()
@@ -178,8 +169,6 @@ class Engine:
             docs_with_snippets.append({"doc": doc_id, "score":ranked_doc[1], "title": title, "snippets": top_snippets})
         return docs_with_snippets
 
-
-
     def get_doc_sentences(self, doc):
         #builder = StructureBuilder()
         #regex = r"[^\.\!\?]*[\.\!\?]"
@@ -220,3 +209,12 @@ class Engine:
             return sentences
         else:
             return [doc]
+
+    def get_ranked_docs_with_snippets(self, query):
+        builder = StructureBuilder()
+        q_terms = builder.get_stemmed_tems(query)
+        candidate_docs = self.get_candidate_documents_ids(q_terms)
+        ranked_docs = self.rank(candidate_docs, q_terms)
+        #print(ranked_docs)
+        docs_with_snippets = self.add_snippets(ranked_docs, q_terms)
+        return docs_with_snippets
