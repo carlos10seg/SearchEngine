@@ -1,6 +1,7 @@
 import time
 from structure_manager import StructureManager
 from engine import Engine
+from suggestion_manager import SuggestionManager
 
 class Controller:
     
@@ -9,9 +10,9 @@ class Controller:
         manager = StructureManager()
         manager.build_all_structure()
 
-    def get_q_suggestions(self, query):
-        # do something
-        return
+    def get_suggestions(self, query):
+        suggestionManager = SuggestionManager()
+        return suggestionManager.get_suggestions(query)
     
     def search(self, query):
         engine = Engine()

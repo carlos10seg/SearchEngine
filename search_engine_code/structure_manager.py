@@ -16,16 +16,15 @@ class StructureManager:
     def build_index_and_doc_collection_from_csv(self):
         count = -1
         docsCount = 1662756 #1662756 => 1662757 - 1 (header)
-        batchSize = 1000 #10000
-        loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
-        print("start time: %s" % (datetime.datetime.now())) 
+        batchSize = 10000 #10000
+        loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1        
         builder = StructureBuilder()
         redisManager = RedisManager()
         dbManager = DbManager()
         pickleManager = PickleManager()
         sub_list = []
         from_list = 1 #1
-        to_list = 2000 #1662756 #1650000 #100000
+        to_list = 1662756 #1662756 #1650000 #100000
         # drop and create the collections in mongo
         dbManager.rebuild_structure()
         # delete all pickle files
@@ -40,11 +39,7 @@ class StructureManager:
                     continue
                 doc_id = int(row[2])
                 doc_content = row[0]
-                
-                #if (doc_content[0] == '"' and doc_content[-1] == '"'):
-                #    doc_content = doc_content[1:-1]
-                # add the document to the collection in redis
-                
+
                 #redisManager.setValueInHashSet(redisManager.collection_documents, doc_id, doc_content)
                 dbManager.insert_document({'id': doc_id, 'content': doc_content})
                 
@@ -88,8 +83,10 @@ class StructureManager:
         print("full index saved: %s" % (datetime.datetime.now())) 
  
     def build_all_structure(self):
+        print("start time: %s" % (datetime.datetime.now()))
         self.build_index_and_doc_collection_from_csv()
         self.build_index_from_pickles()
+        print("end time: %s" % (datetime.datetime.now())) 
 
     def build_index_from_csv(self):
         count = 0

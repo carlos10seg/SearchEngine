@@ -9,16 +9,26 @@ from redis_manager import RedisManager
 from pickle_manager import PickleManager
 from db_manager import DbManager
 from controller import Controller
+from suggestion_manager import SuggestionManager
+
+suggestionManager = SuggestionManager()
+print("loading logs")
+#suggestionManager.load_logs()
+print("getting suggestions")
+print(suggestionManager.get_suggestions("california"))
+print(suggestionManager.get_suggestions("texas"))
+print(suggestionManager.get_suggestions("boise"))
+
 
 # controller = Controller()
 # controller.build_structure()
 
 # ## Test the ranking
-query = 'A killer performance in Spanish'
-engine = Engine()
-docs = engine.get_ranked_docs_with_snippets(query)
-for doc in docs:
-    print(doc)
+# query = 'A killer performance in Spanish'
+# engine = Engine()
+# docs = engine.get_ranked_docs_with_snippets(query)
+# for doc in docs:
+#     print(doc)
 
 # csv.field_size_limit(sys.maxsize)
 # count = 0

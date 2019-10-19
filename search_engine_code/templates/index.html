@@ -1,7 +1,16 @@
 <script type="text/javascript" src="/static/jquery.min.js"></script>
+<script type="text/javascript" src="/static/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/static/jquery-ui.min.css" />
+<style>
+    .ui-autocomplete-loading {
+      background: white url("/static/images/ui-anim_basic_16x16.gif") right center no-repeat;
+    }
+</style>
 <div id="search">
     <input type="text" id="txtQuery" />
+    <br />
     <input type="button" id="btnSearch" value="Search" />
+    <br />
     {{ form.v }}
 </div>
 <di id="result">
@@ -11,6 +20,27 @@
 
 <script type="text/javascript">
     $(function() {
+        $("#txtQuery").autocomplete({
+            source: function( request, response ) {
+                $.ajax( {
+                url: "/suggestions",
+                dataType: "json",
+                data: {
+                    term: request.term
+                },
+                success: function( data ) {
+                    response( data.result );
+                }
+                });
+            },
+            minLength: 3,
+            delay: 1000,
+            select: function( event, ui ) {
+                //console.log( "Selected: " + ui.item.value + " aka " + ui.item.id );
+                console.log(ui);
+            }
+        });
+
         $("#btnSearch").click(function() {
             search();
         }); 

@@ -3,8 +3,20 @@ from controller import Controller
 application = Flask(__name__)
  
 @application.route("/")
-def hello():
+def index():
     return render_template('index.html', form = {'v': 'test'})
+
+@application.route("/suggestions")
+def get_suggestions():
+    ctrl = Controller()
+    query = request.args.get("term")
+    suggestions = ctrl.get_suggestions(query)
+    result = []
+    i = 1
+    for suggestion in suggestions:
+        result.append({'id': i, 'label': suggestion, 'value': suggestion})
+        i += 1  
+    return jsonify({"result": result})
 
 @application.route("/search", methods=['POST'])
 def search():
@@ -12,11 +24,6 @@ def search():
     query = request.form.get("query")
     result = ctrl.search(query)
     return jsonify({"result": result})
-
-@application.route("/suggestions")
-def get_suggestions():
-    query = request.args.get("query")
-    return query + ' test'
  
 if __name__ == "__main__":
     application.run()

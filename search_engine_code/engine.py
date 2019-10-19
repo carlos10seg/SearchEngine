@@ -212,6 +212,7 @@ class Engine:
 
     def get_ranked_docs_with_snippets(self, query):
         builder = StructureBuilder()
+        query = query.strip()
         q_terms = builder.get_stemmed_tems(query)
         candidate_docs = self.get_candidate_documents_ids(q_terms)
         ranked_docs = self.rank(candidate_docs, q_terms)
