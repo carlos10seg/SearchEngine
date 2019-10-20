@@ -23,7 +23,8 @@ class DbManager:
         self.collection_documents.insert_one(doc)
 
     def get_document(self, doc_id):
-        return self.collection_documents.find_one({'id': int(doc_id)}, {'content':1, "_id": False})['content']
+        doc = self.collection_documents.find_one({'id': int(doc_id)}, {'content':1, "_id": False})
+        return doc['content'] if doc != None else None
 
     def insert_many_in_index(self, list):
         self.inverted_index.insert_many(list)
@@ -35,13 +36,15 @@ class DbManager:
         self.inverted_index.insert_one({'term': term, 'frequency': frequency})
     
     def get_index_term(self, term):
-        return self.inverted_index.find_one({'term': term}, {'frequency':1, "_id": False})['frequency']
+        freq = self.inverted_index.find_one({'term': term}, {'frequency':1, "_id": False})
+        return freq['frequency'] if freq != None else None
 
     def insert_max_freq_doc(self, doc_id, max_freq):
         self.max_freq_doc.insert_one({'doc_id': int(doc_id), 'max_freq': int(max_freq)})
 
     def get_max_freq_doc(self, doc_id):
-        return self.max_freq_doc.find_one({'doc_id': int(doc_id)}, {'max_freq':1, "_id": False})['max_freq']
+        max_freq = self.max_freq_doc.find_one({'doc_id': int(doc_id)}, {'max_freq':1, "_id": False})
+        return max_freq['max_freq'] if max_freq != None else None
 
     def save_many_in_index(self, index_structures):
         for index_structure in index_structures:

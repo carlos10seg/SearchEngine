@@ -6,7 +6,7 @@ from pprint import pprint
 from document import Document
 from structure_builder import StructureBuilder
 from db_manager import DbManager
-from redis_manager import RedisManager
+#from redis_manager import RedisManager
 from pickle_manager import PickleManager
 
 csv.field_size_limit(sys.maxsize)
@@ -15,20 +15,20 @@ class StructureManager:
 
     def build_index_and_doc_collection_from_csv(self):
         count = -1
-        docsCount = 1662756 #1662756 => 1662757 - 1 (header)
+        docsCount = 1042755 #1662756 => 1662757 - 1 (header)
         batchSize = 10000 #10000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1        
         builder = StructureBuilder()
-        redisManager = RedisManager()
+        #redisManager = RedisManager()
         dbManager = DbManager()
         pickleManager = PickleManager()
         sub_list = []
-        from_list = 1 #1
+        from_list = 620001 #1
         to_list = 1662756 #1662756 #1650000 #100000
         # drop and create the collections in mongo
-        dbManager.rebuild_structure()
+        #dbManager.rebuild_structure()
         # delete all pickle files
-        pickleManager.remove_all_files()
+        #pickleManager.remove_all_files()
 
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
@@ -96,7 +96,7 @@ class StructureManager:
         #remainder = docsCount % batchSize
         print("start time: %s" % (datetime.datetime.now())) 
         builder = StructureBuilder()
-        redisManager = RedisManager()
+        #redisManager = RedisManager()
         index_structures = []        
         sub_list = []
         with open("../data/wikipedia_text_files.csv") as csvfile:
@@ -126,14 +126,14 @@ class StructureManager:
                     break
 
         print("finish to build structure in memory: %s" % (datetime.datetime.now()))         
-        redisManager.save_array_many_in_index(index_structures)
+        #redisManager.save_array_many_in_index(index_structures)
         print("saved in redis: %s" % (datetime.datetime.now())) 
         
     def build_documents_collection_from_csv(self):
         count = 0 # 1662757
         print("start time: %s" % (datetime.datetime.now())) 
         dbManager = DbManager()
-        redisManager = RedisManager()
+        #redisManager = RedisManager()
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')        
             for row in csv_content:
@@ -141,7 +141,7 @@ class StructureManager:
                 if (count == 1): # skip the headers
                     continue
                 #dbManager.insert_document({'id': row[2], 'content': row[0]})
-                redisManager.setValueInHashSet(redisManager.collection_documents, row[2], row[0])
+                #redisManager.setValueInHashSet(redisManager.collection_documents, row[2], row[0])
                 if count % 1000 == 0:
                     print("%d : time: %s" % (count ,datetime.datetime.now()))
                 

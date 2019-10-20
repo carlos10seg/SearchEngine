@@ -7,15 +7,16 @@
     }
 </style>
 <div id="search">
-    <input type="text" id="txtQuery" />
+    <input type="text" id="txtQuery" style="width:70%"/>
     <br />
-    <input type="button" id="btnSearch" value="Search" />
+    <input type="button" id="btnSearch" value="Search" style="width:20%"/>
+    <br />
+    <span id="loading" style="display: none;">Loading...</span>
     <br />
     {{ form.v }}
 </div>
-<di id="result">
-    
-</di>
+<div class="result">
+</div>
 <span id="tester"></span>
 
 <script type="text/javascript">
@@ -60,6 +61,8 @@
     }
 
 function search() {
+    $('#loading').show()
+    $(".result").empty()
     $.ajax({
             url: "/search",
             method: "POST",
@@ -68,9 +71,16 @@ function search() {
                 query: $("#txtQuery").val()
             }
         })
-        .then(function(response){            
+        .then(function(response){
+            $('#loading').hide()
+            var templ = $.trim($("#itemResult").html());
+            var htmlItem = "<div class='item'><a href='#'><title/></a><p><snippet1/></p><p><snippet2/></p></div>"
             response.result.forEach(item => {
-                console.log(item)
+                //console.log(item)
+                var parsedItem = htmlItem.replace('<title/>', item.title)
+                                    .replace('<snippet1/>', item.snippets.length > 0 ? item.snippets[0] : '')
+                                    .replace('<snippet2/>', item.snippets.length > 1 ? item.snippets[1] : '')
+                $('.result').append(parsedItem);
             });
         });
 }

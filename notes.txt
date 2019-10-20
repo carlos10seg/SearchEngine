@@ -96,6 +96,12 @@ db.getCollection('collection_documents').find({}).length()
 db.getCollection('inverted_index').find({}).length()
 db.getCollection('max_freq_doc').find({}).length()
 
+db.getCollection('collection_documents').find({}).length() // 630000
+db.getCollection('collection_documents').find({id: 620001})
+db.getCollection('collection_documents').remove({id: {$gt: 620000}})
+
+db.getCollection('max_freq_doc').find({doc_id: 620000})
+
 
 To start redis:
 redis-server /usr/local/etc/redis.conf

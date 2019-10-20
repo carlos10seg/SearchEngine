@@ -2,7 +2,7 @@ import operator
 import math
 import re
 from structure_builder import StructureBuilder
-from redis_manager import RedisManager
+#from redis_manager import RedisManager
 from db_manager import DbManager
 
 class Engine:    
@@ -12,6 +12,7 @@ class Engine:
         self.docs_count = 1662757
 
     def get_q_doc_freq(self, q_term, doc_id):
+        if not q_term in self.q_terms_freqs: return None
         for doc_with_freq in self.q_terms_freqs[q_term]:
             doc_freq = doc_with_freq.split(':') # 0-index is docId | 1-index is the doc frequency
             docId = doc_freq[0]
@@ -44,7 +45,7 @@ class Engine:
         I need the number of documents in DC (constant)
         I need the number of documents in DC in which w appears at least once.
         """
-        redisManager = RedisManager()
+        #redisManager = RedisManager()
         dbManager = DbManager()
         builder = StructureBuilder()
         docs_relevant_scores = {}
@@ -56,15 +57,17 @@ class Engine:
             #denom_qi_sum = 0
             for q_term in q_terms:
                 q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
+                if q_doc_freq == None: continue # not found on index
                 #max_freq_doc = redisManager.getValueFromHashSet(redisManager.max_freq_doc, doc_id)
                 max_freq_doc = dbManager.get_max_freq_doc(doc_id)
-                # number of documents in DC in which q_term appears at least once.
-                n_docs_q_term = len(self.q_terms_freqs[q_term])
+                if max_freq_doc != None:
+                    # number of documents in DC in which q_term appears at least once.
+                    n_docs_q_term = len(self.q_terms_freqs[q_term])
 
-                tf_idf_doc = self.calc_tf_idf(q_doc_freq, max_freq_doc, self.docs_count, n_docs_q_term)
-                #tf_idf_q = calc_tf_idf(frequencies_q[i], max_freq_q, N, number_documents_with_terms[i])
-                #tf_idf = tf_idf_doc # * tf_idf_q
-                tf_idf_sum += tf_idf_doc
+                    tf_idf_doc = self.calc_tf_idf(q_doc_freq, max_freq_doc, self.docs_count, n_docs_q_term)
+                    #tf_idf_q = calc_tf_idf(frequencies_q[i], max_freq_q, N, number_documents_with_terms[i])
+                    #tf_idf = tf_idf_doc # * tf_idf_q
+                    tf_idf_sum += tf_idf_doc
             docs_relevant_scores[doc_id] = round(tf_idf_sum, 3)
         sorted_candidate_all_resources = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
         return sorted_candidate_all_resources
@@ -82,7 +85,7 @@ class Engine:
         """        
         MAX_DOCUMENTS_TO_RETRIEVE = 50
         candidate_documents = []        
-        redisManager = RedisManager()
+        #redisManager = RedisManager()
         dbManager = DbManager()
         candidate_all_resources = {} # used to track every candidate document => doc:totalFrequency
         unique_documents = {} # only tracks the unique_documents => doc:count
@@ -127,7 +130,7 @@ class Engine:
         return candidate_documents
 
     def add_snippets(self, ranked_docs, q_terms):
-        redisManager = RedisManager()
+        #redisManager = RedisManager()
         dbManager = DbManager()
         builder = StructureBuilder()
         docs_with_snippets = []
@@ -137,6 +140,7 @@ class Engine:
             docs_relevant_scores = {}     
             #doc = redisManager.getValueFromHashSet(redisManager.collection_documents, doc_id)
             doc = dbManager.get_document(doc_id)
+            if doc == None: continue
             sentences = self.get_doc_sentences(doc)
             title = sentences.pop(0)['content']
             N = len(sentences)

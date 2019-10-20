@@ -11,17 +11,17 @@ from db_manager import DbManager
 from controller import Controller
 from suggestion_manager import SuggestionManager
 
-suggestionManager = SuggestionManager()
-print("loading logs")
-#suggestionManager.load_logs()
-print("getting suggestions")
-print(suggestionManager.get_suggestions("california"))
-print(suggestionManager.get_suggestions("texas"))
-print(suggestionManager.get_suggestions("boise"))
+# suggestionManager = SuggestionManager()
+# print("loading logs")
+# #suggestionManager.load_logs()
+# print("getting suggestions")
+# print(suggestionManager.get_suggestions("california"))
+# print(suggestionManager.get_suggestions("texas"))
+# print(suggestionManager.get_suggestions("boise"))
 
 
-# controller = Controller()
-# controller.build_structure()
+controller = Controller()
+controller.build_structure()
 
 # ## Test the ranking
 # query = 'A killer performance in Spanish'

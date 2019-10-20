@@ -89,8 +89,7 @@ class SuggestionManager():
         candidate_queries = candidate_queries.join(candidate_queries.groupby('Query')['Time_Dif'].min(), on="Query", rsuffix="_Min")
         # only get the queries that have the min difference in time
         # and remove duplicated queries based on 'Query', 'Time_Dif'
-        candidate_queries[candidate_queries['Time_Dif'] == candidate_queries['Time_Dif_Min']].drop_duplicates(subset=['Query', 'Time_Dif'])
-        candidate_queries
+        candidate_queries[candidate_queries['Time_Dif'] == candidate_queries['Time_Dif_Min']].drop_duplicates(subset=['Query', 'Time_Dif'])        
 
         # set the frequency - 𝐹𝑟𝑒𝑞(𝐶𝑄)
         query_counts = logs[logs['Query'].isin(candidate_queries['Query'])].groupby('Query')['Query'].count()
@@ -115,4 +114,4 @@ class SuggestionManager():
         query_results['Score'] = (query_results['Freq'] + query_results['Mod'] + query_results['Time']) / 1 - (min_freq + min_mod + min_time)
         #query_results['Score'] = query_results['Score'].astype('float64')
         n = N_suggestions if len(query_results) > N_suggestions else len(query_results)
-        return query_results.sort_values('Score', ascending=False).head(n)['Query'].tolist()
+        return query_results.drop_duplicates(subset=['Query', 'Score']).sort_values('Score', ascending=False).head(n)['Query'].tolist()
