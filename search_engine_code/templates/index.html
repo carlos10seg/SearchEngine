@@ -6,6 +6,7 @@
       background: white url("/static/images/ui-anim_basic_16x16.gif") right center no-repeat;
     }
 </style>
+<img src="/static/images/altavista.jpg" height="100px" width="200px"/>
 <div id="search">
     <input type="text" id="txtQuery" style="width:70%"/>
     <br />
@@ -13,11 +14,12 @@
     <br />
     <span id="loading" style="display: none;">Loading...</span>
     <br />
-    {{ form.v }}
 </div>
 <div class="result">
 </div>
-<span id="tester"></span>
+<div id="dialog-doc" title="Document Content">
+    <span id="docContent"></span>
+</div>
 
 <script type="text/javascript">
     $(function() {
@@ -37,7 +39,6 @@
             minLength: 3,
             delay: 1000,
             select: function( event, ui ) {
-                //console.log( "Selected: " + ui.item.value + " aka " + ui.item.id );
                 console.log(ui);
             }
         });
@@ -47,42 +48,60 @@
         }); 
     });
 
-    function getSuggestions() {
+    function search() {
+        $('#loading').show()
+        $(".result").empty()
         $.ajax({
-            url: "/suggestions",
+                url: "/search",
+                method: "POST",
+                dataType: "json",
+                data: {
+                    query: $("#txtQuery").val()
+                }
+            })
+            .then(function(response){
+                $('#loading').hide()
+                var templ = $.trim($("#itemResult").html());
+                var htmlItem = "<div class='item'><id/> - <a  onclick='return getDocument(<id/>)' href='#'><title/></a><p><snippet1/></p><p><snippet2/></p><span>Score: <score/></span></div><br />"
+                response.result.forEach(item => {
+                    //console.log(item)
+                    var parsedItem = htmlItem.replace('<id/>', item.docId)
+                                        .replace('<title/>', item.title)
+                                        .replace('<snippet1/>', item.snippets.length > 0 ? item.snippets[0] : '')
+                                        .replace('<snippet2/>', item.snippets.length > 1 ? item.snippets[1] : '')
+                                        .replace('<score/>', item.score)
+                                        .replace('<id/>', item.docId)
+                    $('.result').append(parsedItem);
+                });
+            });
+    }
+
+    function getDocument(docId) {
+        $.ajax({
+            url: "/doc",
             dataType: "json",
             data: {
-                query: $("#txtQuery").val()
+                docId: docId
             }
         })
         .then(function(response){
-            $("#tester").val(response)
+            $('#docContent').text(response.result);
+            createDialog();
         });
     }
 
-function search() {
-    $('#loading').show()
-    $(".result").empty()
-    $.ajax({
-            url: "/search",
-            method: "POST",
-            dataType: "json",
-            data: {
-                query: $("#txtQuery").val()
+    function createDialog(){
+        $( "#dialog-doc" ).dialog({
+            modal: true,
+            width: 800,
+            height: 400,
+            position: { my: "center top", at: "center top", of: window },
+            buttons: {
+                Ok: function() {
+                $( this ).dialog( "close" );
+                }
             }
-        })
-        .then(function(response){
-            $('#loading').hide()
-            var templ = $.trim($("#itemResult").html());
-            var htmlItem = "<div class='item'><a href='#'><title/></a><p><snippet1/></p><p><snippet2/></p></div>"
-            response.result.forEach(item => {
-                //console.log(item)
-                var parsedItem = htmlItem.replace('<title/>', item.title)
-                                    .replace('<snippet1/>', item.snippets.length > 0 ? item.snippets[0] : '')
-                                    .replace('<snippet2/>', item.snippets.length > 1 ? item.snippets[1] : '')
-                $('.result').append(parsedItem);
-            });
         });
-}
+    }
 
 </script>

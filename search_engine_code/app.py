@@ -4,7 +4,7 @@ application = Flask(__name__)
  
 @application.route("/")
 def index():
-    return render_template('index.html', form = {'v': 'test'})
+    return render_template('index.html')
 
 @application.route("/suggestions")
 def get_suggestions():
@@ -25,5 +25,10 @@ def search():
     result = ctrl.search(query)
     return jsonify({"result": result})
  
+@application.route("/doc")
+def get_document():
+    ctrl = Controller()
+    return jsonify({"result": ctrl.get_document(request.args.get("docId"))})
+
 if __name__ == "__main__":
     application.run()

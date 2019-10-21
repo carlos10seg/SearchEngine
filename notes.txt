@@ -80,6 +80,7 @@ cd  ~/Software/mongodb/bin
 https://docs.mongodb.com/manual/reference/mongo-shell/
 use <db>
 To recreate collections:
+
 db.collection_documents.drop()
 db.inverted_index.drop()
 db.max_freq_doc.drop()

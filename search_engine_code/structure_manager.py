@@ -6,7 +6,6 @@ from pprint import pprint
 from document import Document
 from structure_builder import StructureBuilder
 from db_manager import DbManager
-#from redis_manager import RedisManager
 from pickle_manager import PickleManager
 
 csv.field_size_limit(sys.maxsize)
@@ -19,7 +18,6 @@ class StructureManager:
         batchSize = 10000 #10000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1        
         builder = StructureBuilder()
-        #redisManager = RedisManager()
         dbManager = DbManager()
         pickleManager = PickleManager()
         sub_list = []
@@ -40,18 +38,13 @@ class StructureManager:
                 doc_id = int(row[2])
                 doc_content = row[0]
 
-                #redisManager.setValueInHashSet(redisManager.collection_documents, doc_id, doc_content)
-                dbManager.insert_document({'id': doc_id, 'content': doc_content})
-                
+                dbManager.insert_document({'id': doc_id, 'content': doc_content})                
                 # add to the sublist waiting to save the list in a batch operation
                 sub_list.append({'id': doc_id, 'content': doc_content})
                 if count % batchSize == 0: # every batchSize documents send the work to process pool
                     with multiprocessing.Pool(processes=max(multiprocessing.cpu_count()-1, 1)) as pool:
                         # create the index structure
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
-                        
-                        #redisManager.save_many_in_index(index_structures)
-                        #dbManager.save_many_in_index(index_structures)
                         pickleManager.save_index_and_max_freq(index_structures, str(count))
 
                     print("%d : %d : %s" % (loops, count, datetime.datetime.now()))
@@ -61,13 +54,9 @@ class StructureManager:
                     with multiprocessing.Pool() as pool:
                         # create the index structure
                         index_structures = pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
-                        
-                        #redisManager.save_many_in_index(index_structures)
-                        #dbManager.save_many_in_index(index_structures)
                         pickleManager.save_index_and_max_freq(index_structures, str(count))
                     print("%d : %d : reminder: %s" % (loops, count ,datetime.datetime.now()))
                 
-                # temp => sample testing
                 if count == to_list:
                     break
 

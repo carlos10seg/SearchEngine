@@ -2,15 +2,13 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 from os import path
-#from redis_manager import RedisManager
-#from pickle_manager import PickleManager
 
 class SuggestionManager():
 
     #max_session_time = 0
     #max_frequency = 0
 
-    def set_max_values(self):
+    def set_max_values(self, logs):
         # set the maximum frequency of occurrence of any query in QL
         max_frequency = logs.groupby('Query').count()[['UserId']].sort_values('UserId', ascending=False).iloc(0)[0][0]
         # get the longest session
@@ -36,7 +34,7 @@ class SuggestionManager():
         logs = logs.rename(columns={'AnonID': 'UserId'})
         logs['QueryTime'] = pd.to_datetime(logs['QueryTime'], format='%Y-%m-%d %H:%M:%S')
         # 3,942,354 queries on logs
-        #set_max_values()
+        #set_max_values(logs)
         logs.to_pickle("./logs.pkl")
 
     def get_suggestions(self, query):
@@ -114,4 +112,6 @@ class SuggestionManager():
         query_results['Score'] = (query_results['Freq'] + query_results['Mod'] + query_results['Time']) / 1 - (min_freq + min_mod + min_time)
         #query_results['Score'] = query_results['Score'].astype('float64')
         n = N_suggestions if len(query_results) > N_suggestions else len(query_results)
-        return query_results.drop_duplicates(subset=['Query', 'Score']).sort_values('Score', ascending=False).head(n)['Query'].tolist()
+        suggestions_list = query_results.drop_duplicates(subset=['Query', 'Score']).sort_values('Score', ascending=False).head(n)
+        print(suggestions_list)
+        return suggestions_list['Query'].tolist()
