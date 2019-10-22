@@ -5,10 +5,16 @@ class IndexStructure:
         self.doc_id = doc_id
 
     def get_max_freq(self):
-        return max(self.Frequencies).split(':')[1] if self.Frequencies and len(self.Frequencies) > 0 else 0
+        max_freq = 0
+        if self.Frequencies and len(self.Frequencies) > 0:
+            for f in self.Frequencies:
+                freq = int(f.split(':')[1])
+                if freq > max_freq:
+                    max_freq = freq
+        return max_freq
     
     def get_term_freq(self, term):
         for i in range(len(self.Terms)):
             if self.Terms[i] == term:
-                return self.Frequencies[i].split(":")[1]
+                return int(self.Frequencies[i].split(":")[1])
         return 0

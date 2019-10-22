@@ -9,6 +9,7 @@ class Engine:
     def __init__(self):
         self.q_terms_freqs = {}
         self.docs_count = 1662757
+        self.max_freq_docs = {}
 
     def get_q_doc_freq(self, q_term, doc_id):
         if not q_term in self.q_terms_freqs: return None
@@ -55,6 +56,7 @@ class Engine:
                 if q_doc_freq == None: continue # not found on index
                 max_freq_doc = dbManager.get_max_freq_doc(doc_id)
                 if max_freq_doc != None:
+                    self.max_freq_docs[doc_id] = max_freq_doc
                     # number of documents in DC in which q_term appears at least once.
                     n_docs_q_term = len(self.q_terms_freqs[q_term])
 
@@ -119,11 +121,29 @@ class Engine:
         
         return candidate_documents
 
-    def add_snippets(self, ranked_docs, q_terms):
+    def get_local_max_freq(self, q_terms):
+        max_value = 1
+        for q_term in q_terms:
+            q_count = q_terms.count(q_term)
+            if (q_count > max_value):
+                max_value = q_count
+        return max_value
+
+    def add_snippets(self, ranked_docs, query):
         dbManager = DbManager()
         builder = StructureBuilder()
         docs_with_snippets = []
-        
+        tf_idf_q_terms = {}
+        q_terms = builder.get_stemmed_tems(query)
+        #q_terms_not_stemmed = query.split(' ')
+
+        for q_term in q_terms:
+            # number of documents in DC in which q_term appears at least once.
+            n_docs_q_term = len(self.q_terms_freqs[q_term])
+            freq_d = len([q for q in q_terms if q == q_term])
+            max_q_freq = self.get_local_max_freq(q_terms)
+            tf_idf_q_terms[q_term] = self.calc_tf_idf(freq_d, max_q_freq, self.docs_count, n_docs_q_term)
+
         for ranked_doc in ranked_docs:
             doc_id = ranked_doc[0]
             docs_relevant_scores = {}     
@@ -131,34 +151,46 @@ class Engine:
             if doc == None: continue
             sentences = self.get_doc_sentences(doc)
             title = sentences.pop(0)['content']
-            N = len(sentences)
-            top_snippets = []
-            if N > 0:
-                num_docs_for_q_terms = {}
+
+            for sentence in sentences:
+                senetence_content = sentence['content']
+                # if the sentence has less than 2 character then it is probabily not an actual sentence.
+                if len(senetence_content) <= 2: continue
+                sentence_id = sentence['id']
+                tf_idf_sum = 0
+                denom_di_sum = 0
+                denom_qi_sum = 0
+                index_sentence = builder.get_stemmed_terms_frequencies_from_doc(sentence)
+                #sentence_terms = builder.get_stemmed_tems(senetence_content)
+                #for i in range(len(q_terms)):
                 for q_term in q_terms:
-                    num_docs_for_q_terms[q_term] = len([s for s in sentences if q_term in s['content']])                
-                for sentence in sentences:                    
-                    # if the sentence has less than 2 character then it is probabily not an actual sentence.
-                    if len(sentence['content']) <= 2: continue
-                    sentence_id = sentence['id']
-                    tf_idf_sum = 0
-                    index_sentence = builder.get_stemmed_terms_frequencies_from_doc(sentence)
-                    for q_term in q_terms:
+                    # check the not stemmed words                        
+                    if q_term in index_sentence.Terms: 
+                        #q_term = q_terms[i]
                         q_sentence_freq = index_sentence.get_term_freq(q_term)
+                        #q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
+                        #max_freq = self.max_freq_docs[doc_id]
                         max_freq = index_sentence.get_max_freq()
                         # if the query term doesn't have frequency on the sentence and there is no max freq. then disregard this q_term
                         if (q_sentence_freq == 0 and max_freq == 0):
                             continue
-                        tf_idf_doc = self.calc_tf_idf(q_sentence_freq, max_freq, N, num_docs_for_q_terms[q_term]) if num_docs_for_q_terms[q_term] != 0 else 0
-                        # TODO Carlos: the cosine similarity calc is missing here!!!!
+                        
+                        tf_idf_doc = self.calc_tf_idf(q_sentence_freq, max_freq, self.docs_count, len(self.q_terms_freqs[q_term]))
+                        tf_idf_q = tf_idf_q_terms[q_term]
                         # The two sentences in d that have the highest cosine similarity with respect to q; with TF-IDF as the term weighting scheme.
 
-                        tf_idf_sum += tf_idf_doc
-                    docs_relevant_scores[sentence_id] = round(tf_idf_sum, 3)
+                        tf_idf_sum += tf_idf_doc * tf_idf_q
+                        denom_di_sum += tf_idf_doc ** 2
+                        denom_qi_sum += tf_idf_q ** 2
+                
+                denom = math.sqrt(denom_di_sum) * math.sqrt(denom_qi_sum)
+                score = tf_idf_sum/denom if denom != 0 else 0
+                docs_relevant_scores[sentence_id] = round(score, 3)
 
-                sorted_candidate_all_resources = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
-                top_sentences = sorted_candidate_all_resources[0:2]
-                top_snippets = [s['content'] for s in sentences if s['id'] == top_sentences[0][0] or s['id'] == top_sentences[1][0]]
+            sorted_candidate_all_resources = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
+            top_sentences = sorted_candidate_all_resources[0:2]
+            top_snippets = [s['content'] for s in sentences if s['id'] == top_sentences[0][0] or s['id'] == top_sentences[1][0]]
+        
             docs_with_snippets.append({"docId": doc_id, "score":ranked_doc[1], "title": title, "snippets": top_snippets})
         return docs_with_snippets
 
@@ -192,5 +224,5 @@ class Engine:
         q_terms = builder.get_stemmed_tems(query)
         candidate_docs = self.get_candidate_documents_ids(q_terms)
         ranked_docs = self.rank(candidate_docs, q_terms)
-        docs_with_snippets = self.add_snippets(ranked_docs, q_terms)
+        docs_with_snippets = self.add_snippets(ranked_docs, query)
         return docs_with_snippets

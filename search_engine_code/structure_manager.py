@@ -14,19 +14,19 @@ class StructureManager:
 
     def build_index_and_doc_collection_from_csv(self):
         count = -1
-        docsCount = 1042755 #1662756 => 1662757 - 1 (header)
+        docsCount = 1662756 #1662756 => 1662757 - 1 (header)
         batchSize = 10000 #10000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1        
         builder = StructureBuilder()
         dbManager = DbManager()
         pickleManager = PickleManager()
         sub_list = []
-        from_list = 620001 #1
-        to_list = 1662756 #1662756 #1650000 #100000
+        from_list = 1 #1
+        to_list = 20000 #1662756 #1650000 #100000
         # drop and create the collections in mongo
-        #dbManager.rebuild_structure()
+        dbManager.rebuild_structure()
         # delete all pickle files
-        #pickleManager.remove_all_files()
+        pickleManager.remove_all_files()
 
         with open("../data/wikipedia_text_files.csv") as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')

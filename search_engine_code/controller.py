@@ -7,7 +7,6 @@ from db_manager import DbManager
 class Controller:
     
     def build_structure(self):
-        # 1) build the structure in mongo and redis
         manager = StructureManager()
         manager.build_all_structure()
 
