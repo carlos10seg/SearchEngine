@@ -62,7 +62,8 @@
             .then(function(response){
                 $('#loading').hide()
                 var templ = $.trim($("#itemResult").html());
-                var htmlItem = "<div class='item'><id/> - <a  onclick='return getDocument(<id/>)' href='#'><title/></a><p><snippet1/></p><p><snippet2/></p><span>Score: <score/></span></div><br />"
+                var htmlItem = "<div class='item'><number/>) <id/> - <a  onclick='return getDocument(<id/>)' href='#'><title/></a><p><snippet1/></p><p><snippet2/></p><span>Score: <score/></span></div><br /> <br />"
+                var number = 1;
                 response.result.forEach(item => {
                     //console.log(item)
                     var parsedItem = htmlItem.replace('<id/>', item.docId)
@@ -71,7 +72,9 @@
                                         .replace('<snippet2/>', item.snippets.length > 1 ? item.snippets[1] : '')
                                         .replace('<score/>', item.score)
                                         .replace('<id/>', item.docId)
+                                        .replace('<number/>', number)
                     $('.result').append(parsedItem);
+                    number++;
                 });
             });
     }

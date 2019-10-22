@@ -63,8 +63,8 @@ class Engine:
                     tf_idf_doc = self.calc_tf_idf(q_doc_freq, max_freq_doc, self.docs_count, n_docs_q_term)
                     tf_idf_sum += tf_idf_doc
             docs_relevant_scores[doc_id] = round(tf_idf_sum, 3)
-        sorted_candidate_all_resources = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
-        return sorted_candidate_all_resources
+        sorted_docs_total_freqs = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
+        return sorted_docs_total_freqs
 
     
     def get_candidate_documents_ids(self, q_terms):
@@ -80,8 +80,10 @@ class Engine:
         MAX_DOCUMENTS_TO_RETRIEVE = 50
         candidate_documents = []        
         dbManager = DbManager()
-        candidate_all_resources = {} # used to track every candidate document => doc:totalFrequency
-        unique_documents = {} # only tracks the unique_documents => doc:count
+        docs_total_freqs = {} # used to track every candidate document => doc:totalFrequency
+        q_terms_count_per_doc = {} # only tracks the q_terms_count_per_doc => doc:count
+        docs_count_all_terms = []
+        count = 1
         for q_t in q_terms:
             doc_freqs = dbManager.get_index_term(q_t)
             if doc_freqs != None:
@@ -92,29 +94,46 @@ class Engine:
                         doc_freq = doc_with_freq.split(':') # 0-index is docId | 1-index is the doc frequency
                         docId = doc_freq[0]
                         docFreq = doc_freq[1]
-                        if docId in candidate_all_resources:
-                            candidate_all_resources[docId] += docFreq
-                            unique_documents[docId] += 1
+                        if docId in docs_total_freqs:                            
+                            docs_total_freqs[docId] += docFreq
+                            q_terms_count_per_doc[docId] += 1
+                            if count == len(q_terms) and q_terms_count_per_doc[docId]  == len(q_terms):
+                                docs_count_all_terms.append(q_terms)
                         else:
-                            candidate_all_resources[docId] = docFreq
-                            unique_documents[docId] = 1
-
+                            docs_total_freqs[docId] = docFreq
+                            q_terms_count_per_doc[docId] = 1
+            count += 1
         # now, let's figure out which documents have all query terms and which have the most frequency
-        # first, let's see the documents which have at least half of the document terms
-        min_size = int(len(q_terms) / 2)
-        max_size = len(q_terms)
-        while max_size >= min_size:
-            candidate_documents += [k for k, v in unique_documents.items() if v == max_size and candidate_documents.count(v) == 0]
-            max_size -= 1 
+        
+        # # first, let's see the documents which have at least half of the document terms
+        # min_size = int(len(q_terms) / 2)
+        # max_size = len(q_terms)
+        # while max_size >= min_size:
+        #     candidate_documents += [k for k, v in q_terms_count_per_doc.items() if v == max_size and candidate_documents.count(v) == 0]
+        #     max_size -= 1 
 
-        if len(candidate_documents) < MAX_DOCUMENTS_TO_RETRIEVE:
-            # second, let's see the documents with most frequency. Only if there are less than MAX_DOCUMENTS_TO_RETRIEVE in the candidate_documents
-            sorted_candidate_all_resources = sorted(candidate_all_resources.items(), key=operator.itemgetter(1), reverse=True)
-            for k, v in sorted_candidate_all_resources:
-                if not candidate_documents.count(k):
-                    candidate_documents.append(v)
-                if len(candidate_documents) >= MAX_DOCUMENTS_TO_RETRIEVE:
-                    break
+        # if len(candidate_documents) < MAX_DOCUMENTS_TO_RETRIEVE:
+        #     # second, let's see the documents with most frequency. Only if there are less than MAX_DOCUMENTS_TO_RETRIEVE in the candidate_documents
+        #     sorted_docs_total_freqs = sorted(docs_total_freqs.items(), key=operator.itemgetter(1), reverse=True)
+        #     for k, v in sorted_docs_total_freqs:
+        #         if not candidate_documents.count(k):
+        #             candidate_documents.append(v)
+        #         if len(candidate_documents) >= MAX_DOCUMENTS_TO_RETRIEVE:
+        #             break
+
+        q_terms_min_size = len(q_terms) if len(q_terms) == 1 else int(len(q_terms) / 2)     
+        #docs_count_all_terms = len([k for k, v in q_terms_count_per_doc.items() if v == len(q_terms)])
+        # get the most frequent terms
+        sorted_docs_total_freqs = sorted(docs_total_freqs.items(), key=operator.itemgetter(1), reverse=True)
+        for k, v in sorted_docs_total_freqs:
+            # get the docs which have all query terms at least
+            if q_terms_count_per_doc[k] == len(q_terms):
+                candidate_documents.append(k)
+            elif len(docs_count_all_terms) < MAX_DOCUMENTS_TO_RETRIEVE:
+                candidate_documents.append(k)
+            if len(candidate_documents) >= MAX_DOCUMENTS_TO_RETRIEVE:
+                break
+
 
         if len(candidate_documents) > MAX_DOCUMENTS_TO_RETRIEVE:
             candidate_documents = candidate_documents[0:MAX_DOCUMENTS_TO_RETRIEVE]
@@ -139,10 +158,13 @@ class Engine:
 
         for q_term in q_terms:
             # number of documents in DC in which q_term appears at least once.
-            n_docs_q_term = len(self.q_terms_freqs[q_term])
-            freq_d = len([q for q in q_terms if q == q_term])
-            max_q_freq = self.get_local_max_freq(q_terms)
-            tf_idf_q_terms[q_term] = self.calc_tf_idf(freq_d, max_q_freq, self.docs_count, n_docs_q_term)
+            n_docs_q_term = len(self.q_terms_freqs[q_term]) if q_term in self.q_terms_freqs else 0
+            if n_docs_q_term != 0:
+                freq_d = len([q for q in q_terms if q == q_term])
+                max_q_freq = self.get_local_max_freq(q_terms)
+                tf_idf_q_terms[q_term] = self.calc_tf_idf(freq_d, max_q_freq, self.docs_count, n_docs_q_term)
+            else:
+                tf_idf_q_terms[q_term] = 0
 
         for ranked_doc in ranked_docs:
             doc_id = ranked_doc[0]
@@ -187,8 +209,8 @@ class Engine:
                 score = tf_idf_sum/denom if denom != 0 else 0
                 docs_relevant_scores[sentence_id] = round(score, 3)
 
-            sorted_candidate_all_resources = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
-            top_sentences = sorted_candidate_all_resources[0:2]
+            sorted_docs_total_freqs = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
+            top_sentences = sorted_docs_total_freqs[0:2]
             top_snippets = [s['content'] for s in sentences if s['id'] == top_sentences[0][0] or s['id'] == top_sentences[1][0]]
         
             docs_with_snippets.append({"docId": doc_id, "score":ranked_doc[1], "title": title, "snippets": top_snippets})

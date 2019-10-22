@@ -19,17 +19,17 @@ from suggestion_manager import SuggestionManager
 # print(index_structure.get_max_freq())
 
 
-# suggestionManager = SuggestionManager()
+suggestionManager = SuggestionManager()
 # print("loading logs")
 # suggestionManager.load_logs()
 # print("getting suggestions")
-# print(suggestionManager.get_suggestions("california"))
+print(suggestionManager.get_suggestions("worcester telegram"))
 # print(suggestionManager.get_suggestions("texas"))
 # print(suggestionManager.get_suggestions("boise"))
 
 
-controller = Controller()
-controller.build_structure()
+#controller = Controller()
+#controller.build_structure()
 
 # ## Test the ranking
 # query = 'A killer performance in Spanish'
