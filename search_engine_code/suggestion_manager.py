@@ -5,9 +5,6 @@ from os import path
 
 class SuggestionManager():
 
-    #max_session_time = 0
-    #max_frequency = 0
-
     def set_max_values(self, logs):
         # set the maximum frequency of occurrence of any query in QL
         max_frequency = logs.groupby('Query').count()[['UserId']].sort_values('UserId', ascending=False).iloc(0)[0][0]
@@ -27,14 +24,27 @@ class SuggestionManager():
                     current_time = q_time
         max_session_time
 
-    def load_logs(self):        
-        #if redisManager.getValue(self.log_name) == None:
+    # steps to create a unified logs file.
+    def create_unified_log(self):
+        if (not path.exists('data/logs.csv')):
+            logs1 = pd.read_csv('data/logs/Clean-Data-01.txt', sep='\t')
+            logs2 = pd.read_csv('data/logs/Clean-Data-02.txt', sep='\t')
+            logs3 = pd.read_csv('data/logs/Clean-Data-03.txt', sep='\t')
+            logs4 = pd.read_csv('data/logs/Clean-Data-04.txt', sep='\t')
+            logs5 = pd.read_csv('data/logs/Clean-Data-05.txt', sep='\t')
+            frames = [logs1, logs2, logs3, logs4, logs5]
+            logs = pd.concat(frames)
+
+            # let's save it to a csv file
+            logs.to_csv('data/logs.csv', index=False)
+
+    def load_logs(self):
+        self.create_unified_log()
         logs = pd.read_csv('../data/logs.csv')
         logs['Query'] = logs['Query'].str.strip()
         logs = logs.rename(columns={'AnonID': 'UserId'})
         logs['QueryTime'] = pd.to_datetime(logs['QueryTime'], format='%Y-%m-%d %H:%M:%S')
         # 3,942,354 queries on logs
-        #set_max_values(logs)
         logs.to_pickle("./logs.pkl")
 
     def get_suggestions(self, query):
@@ -110,7 +120,6 @@ class SuggestionManager():
 
         # calculate scores and sort
         query_results['Score'] = (query_results['Freq'] + query_results['Mod'] + query_results['Time']) / 1 - (min_freq + min_mod + min_time)
-        #query_results['Score'] = query_results['Score'].astype('float64')
         n = N_suggestions if len(query_results) > N_suggestions else len(query_results)
         suggestions_list = query_results.drop_duplicates(subset=['Query', 'Score']).sort_values('Score', ascending=False).head(n)
         print(suggestions_list)

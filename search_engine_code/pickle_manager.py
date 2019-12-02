@@ -35,7 +35,6 @@ class PickleManager:
         max_freqs = {}
         for index_structure in index_structures:
             dbManager.insert_max_freq_doc(index_structure.doc_id, index_structure.get_max_freq())
-            #max_freqs[index_structure.doc_id] = index_structure.get_max_freq()
             for i in range(len(index_structure.Terms)):
                 term = index_structure.Terms[i]
                 frequency = index_structure.Frequencies[i]
@@ -44,7 +43,6 @@ class PickleManager:
                 else:
                     index[term] = str(frequency)
         self.storeData(index, "data_" + file_name)
-        #self.storeData(max_freqs, "maxfreq_" + file_name)
 
     def merge_index_structures(self):
         full_index = {}

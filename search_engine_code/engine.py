@@ -66,6 +66,47 @@ class Engine:
         sorted_docs_total_freqs = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
         return sorted_docs_total_freqs
 
+    def rank_cosine_sim(self, doc_ids, q_terms):
+        dbManager = DbManager()
+        builder = StructureBuilder()
+        docs_relevant_scores = {}
+        q_freqs = dict()
+        # set the query terms frequencies
+        for q_term in q_terms:
+            if q_term in q_freqs:
+                q_freqs[q_term] += 1
+            else:
+                q_freqs[q_term] = 1
+
+        # set max frequency
+        sorted_q_freqs = sorted(q_freqs.items(), key=operator.itemgetter(1), reverse=True)
+        max_q_freq = sorted_q_freqs[0][1]
+
+        for doc_id in doc_ids:
+            tf_idf_sum = 0
+            denom_di_sum = 0
+            denom_qi_sum = 0
+            for q_term in q_terms:
+                q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
+                if q_doc_freq == None: continue # not found on index
+                max_freq_doc = dbManager.get_max_freq_doc(doc_id)
+                if max_freq_doc != None:
+                    self.max_freq_docs[doc_id] = max_freq_doc
+                    # number of documents in DC in which q_term appears at least once.
+                    n_docs_q_term = len(self.q_terms_freqs[q_term])
+
+                    tf_idf_doc = self.calc_tf_idf(q_doc_freq, max_freq_doc, self.docs_count, n_docs_q_term)
+                    tf_idf_q = self.calc_tf_idf(q_freqs[q_term], max_q_freq, self.docs_count, n_docs_q_term)
+                    tf_idf = tf_idf_doc * tf_idf_q
+                    tf_idf_sum += tf_idf
+                    denom_di_sum += tf_idf_doc ** 2
+                    denom_qi_sum += tf_idf_q ** 2
+                    #tf_idf_sum += tf_idf_doc
+            denom = math.sqrt(denom_di_sum) * math.sqrt(denom_qi_sum)
+            score = tf_idf_sum/denom
+            docs_relevant_scores[doc_id] = round(score, 3)
+        sorted_docs_total_freqs = sorted(docs_relevant_scores.items(), key=operator.itemgetter(1), reverse=True)
+        return sorted_docs_total_freqs
     
     def get_candidate_documents_ids(self, q_terms):
         """
@@ -103,26 +144,8 @@ class Engine:
                             docs_total_freqs[docId] = docFreq
                             q_terms_count_per_doc[docId] = 1
             count += 1
-        # now, let's figure out which documents have all query terms and which have the most frequency
-        
-        # # first, let's see the documents which have at least half of the document terms
-        # min_size = int(len(q_terms) / 2)
-        # max_size = len(q_terms)
-        # while max_size >= min_size:
-        #     candidate_documents += [k for k, v in q_terms_count_per_doc.items() if v == max_size and candidate_documents.count(v) == 0]
-        #     max_size -= 1 
-
-        # if len(candidate_documents) < MAX_DOCUMENTS_TO_RETRIEVE:
-        #     # second, let's see the documents with most frequency. Only if there are less than MAX_DOCUMENTS_TO_RETRIEVE in the candidate_documents
-        #     sorted_docs_total_freqs = sorted(docs_total_freqs.items(), key=operator.itemgetter(1), reverse=True)
-        #     for k, v in sorted_docs_total_freqs:
-        #         if not candidate_documents.count(k):
-        #             candidate_documents.append(v)
-        #         if len(candidate_documents) >= MAX_DOCUMENTS_TO_RETRIEVE:
-        #             break
 
         q_terms_min_size = len(q_terms) if len(q_terms) == 1 else int(len(q_terms) / 2)     
-        #docs_count_all_terms = len([k for k, v in q_terms_count_per_doc.items() if v == len(q_terms)])
         # get the most frequent terms
         sorted_docs_total_freqs = sorted(docs_total_freqs.items(), key=operator.itemgetter(1), reverse=True)
         for k, v in sorted_docs_total_freqs:
@@ -154,7 +177,6 @@ class Engine:
         docs_with_snippets = []
         tf_idf_q_terms = {}
         q_terms = builder.get_stemmed_tems(query)
-        #q_terms_not_stemmed = query.split(' ')
 
         for q_term in q_terms:
             # number of documents in DC in which q_term appears at least once.
@@ -183,15 +205,10 @@ class Engine:
                 denom_di_sum = 0
                 denom_qi_sum = 0
                 index_sentence = builder.get_stemmed_terms_frequencies_from_doc(sentence)
-                #sentence_terms = builder.get_stemmed_tems(senetence_content)
-                #for i in range(len(q_terms)):
                 for q_term in q_terms:
                     # check the not stemmed words                        
                     if q_term in index_sentence.Terms: 
-                        #q_term = q_terms[i]
                         q_sentence_freq = index_sentence.get_term_freq(q_term)
-                        #q_doc_freq = self.get_q_doc_freq(q_term, doc_id)
-                        #max_freq = self.max_freq_docs[doc_id]
                         max_freq = index_sentence.get_max_freq()
                         # if the query term doesn't have frequency on the sentence and there is no max freq. then disregard this q_term
                         if (q_sentence_freq == 0 and max_freq == 0):
@@ -245,6 +262,9 @@ class Engine:
         query = query.strip()
         q_terms = builder.get_stemmed_tems(query)
         candidate_docs = self.get_candidate_documents_ids(q_terms)
-        ranked_docs = self.rank(candidate_docs, q_terms)
+        # current ranking algorithm:
+        #ranked_docs = self.rank(candidate_docs, q_terms)
+        # new ranking algorithm:
+        ranked_docs = self.rank_cosine_sim(candidate_docs, q_terms)
         docs_with_snippets = self.add_snippets(ranked_docs, query)
         return docs_with_snippets
