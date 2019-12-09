@@ -13,6 +13,7 @@ csv.field_size_limit(sys.maxsize)
 class StructureManager:
 
     def build_index_and_doc_collection_from_csv(self):
+        fileName = "../data/wikipedia_text_files.csv"
         count = -1
         docsCount = 1662756 #1662756 => 1662757 - 1 (header)
         batchSize = 10000 #10000
@@ -28,7 +29,7 @@ class StructureManager:
         # delete all pickle files
         pickleManager.remove_all_files()
 
-        with open("../data/wikipedia_text_files.csv") as csvfile:
+        with open(fileName) as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
             for row in csv_content:
                 count += 1
