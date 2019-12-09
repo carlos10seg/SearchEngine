@@ -26,8 +26,11 @@ class PickleManager:
         return db
 
     def remove_all_files(self):
-        for file_name in os.listdir(self.directory_path):
-            os.remove(self.directory_path + file_name)
+        if os.path.exists(self.directory_path):
+            for file_name in os.listdir(self.directory_path):
+                os.remove(self.directory_path + file_name)
+        else:
+            os.makedirs(self.directory_path)
 
     def save_index_and_max_freq(self, index_structures, file_name):
         dbManager = DbManager()

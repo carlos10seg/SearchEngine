@@ -6,9 +6,9 @@ from db_manager import DbManager
 
 class Controller:
     
-    def build_structure(self):
+    def build_structure(self, fileName):
         manager = StructureManager()
-        manager.build_all_structure()
+        manager.build_all_structure(fileName)
 
     def get_suggestions(self, query):
         suggestionManager = SuggestionManager()

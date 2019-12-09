@@ -3,15 +3,18 @@ from pymongo import MongoClient
 class DbManager:
     def __init__(self):
         client = MongoClient('localhost', 27017)
+        self.collection_documents_table_name = "collection_documents"
+        self.max_freq_doc_table_name = "max_freq_doc"
+        self.inverted_index_table_name = "inverted_index"
         self.db = client.searchengine
-        self.collection_documents = self.db['collection_documents']        
-        self.max_freq_doc = self.db['max_freq_doc']
-        self.inverted_index = self.db['inverted_index']
+        self.collection_documents = self.db[self.collection_documents_table_name]
+        self.max_freq_doc = self.db[self.max_freq_doc_table_name]
+        self.inverted_index = self.db[self.inverted_index_table_name]
         
     def rebuild_structure(self):
-        self.db.drop_collection("collection_documents")
-        self.db.drop_collection("max_freq_doc")
-        self.db.drop_collection("inverted_index")
+        self.db.drop_collection(self.collection_documents_table_name)
+        self.db.drop_collection(self.max_freq_doc_table_name)
+        self.db.drop_collection(self.inverted_index_table_name)
         self.collection_documents.create_index("id", unique=True)
         self.max_freq_doc.create_index("doc_id", unique=True)
         self.inverted_index.create_index("term", unique=True)

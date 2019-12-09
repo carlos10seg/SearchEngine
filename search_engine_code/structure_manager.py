@@ -12,8 +12,7 @@ csv.field_size_limit(sys.maxsize)
 
 class StructureManager:
 
-    def build_index_and_doc_collection_from_csv(self):
-        fileName = "../data/wikipedia_text_files.csv"
+    def build_index_and_doc_collection_from_csv(self, fileName):
         count = -1
         docsCount = 1662756 #1662756 => 1662757 - 1 (header)
         batchSize = 10000 #10000
@@ -23,7 +22,7 @@ class StructureManager:
         pickleManager = PickleManager()
         sub_list = []
         from_list = 1 #1
-        to_list = 20000 #1662756 #1650000 #100000
+        to_list = 1662756 #1662756 #1650000 #100000
         # drop and create the collections in mongo
         dbManager.rebuild_structure()
         # delete all pickle files
@@ -71,63 +70,8 @@ class StructureManager:
         dbManager.save_full_index(full_index)
         print("full index saved: %s" % (datetime.datetime.now())) 
  
-    def build_all_structure(self):
+    def build_all_structure(self, fileName):
         print("start time: %s" % (datetime.datetime.now()))
-        self.build_index_and_doc_collection_from_csv()
+        self.build_index_and_doc_collection_from_csv(fileName)
         self.build_index_from_pickles()
         print("end time: %s" % (datetime.datetime.now())) 
-
-    def build_index_from_csv(self):
-        count = 0
-        docsCount = 1662757
-        batchSize = 1000
-        loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1
-        print("start time: %s" % (datetime.datetime.now())) 
-        builder = StructureBuilder()
-        index_structures = []        
-        sub_list = []
-        with open("../data/wikipedia_text_files.csv") as csvfile:
-            csv_content = csv.reader(csvfile, delimiter=',')
-            for row in csv_content:
-                count += 1
-                if (count == 1): # skip the headers
-                    continue               
-                sub_list.append({'id': row[2], 'content': row[0]})
-                if count % batchSize == 0: # every 1000 documents send the work to process pool
-                    with multiprocessing.Pool() as pool:
-                        # create the index structure
-                        index_structures += pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
-                    print("%d : %d : %s" % (loops, count, datetime.datetime.now()))
-                    sub_list = [] # empty the list for the next ones.
-                    loops -= 1
-                if loops <= 1:
-                    with multiprocessing.Pool() as pool:
-                        # create the index structure
-                        index_structures += pool.map(builder.get_stemmed_terms_frequencies_from_doc, sub_list)
-                    print("%d : reminder: %s" % (count ,datetime.datetime.now()))
-                
-                # temp => sample testing
-                if count >= 10000:
-                    break
-
-        print("finish to build structure in memory: %s" % (datetime.datetime.now()))         
-        print("saved in redis: %s" % (datetime.datetime.now())) 
-        
-    def build_documents_collection_from_csv(self):
-        count = 0 # 1662757
-        print("start time: %s" % (datetime.datetime.now())) 
-        dbManager = DbManager()
-        with open("../data/wikipedia_text_files.csv") as csvfile:
-            csv_content = csv.reader(csvfile, delimiter=',')        
-            for row in csv_content:
-                count += 1
-                if (count == 1): # skip the headers
-                    continue
-                if count % 1000 == 0:
-                    print("%d : time: %s" % (count ,datetime.datetime.now()))
-                
-                # temp => sample testing
-                if count >= 10000:
-                    break
-        
-        print("end time: %s" % (datetime.datetime.now()))
