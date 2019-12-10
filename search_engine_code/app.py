@@ -4,6 +4,10 @@ application = Flask(__name__)
  
 @application.route("/")
 def index():
+    isBuild = request.args.get('build')
+    if (isBuild != None and isBuild == True):
+        ctrl = Controller()
+        ctrl.build_structure()
     return render_template('index.html')
 
 @application.route("/suggestions")
@@ -31,4 +35,4 @@ def get_document():
     return jsonify({"result": ctrl.get_document(request.args.get("docId"))})
 
 if __name__ == "__main__":
-    application.run()
+    application.run(host='0.0.0.0')

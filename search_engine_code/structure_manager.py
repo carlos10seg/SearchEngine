@@ -14,15 +14,15 @@ class StructureManager:
 
     def build_index_and_doc_collection_from_csv(self, fileName):
         count = -1
-        docsCount = 1662756 #1662756 => 1662757 - 1 (header)
-        batchSize = 10000 #10000
+        docsCount = 1000 #1662756 => 1662757 - 1 (header)
+        batchSize = 1000 #10000
         loops = (int)(docsCount / batchSize) + 1 # 1662.757 + 1        
         builder = StructureBuilder()
         dbManager = DbManager()
         pickleManager = PickleManager()
         sub_list = []
         from_list = 1 #1
-        to_list = 1662756 #1662756 #1650000 #100000
+        to_list = 1000 #1662756 #1650000 #100000
         # drop and create the collections in mongo
         dbManager.rebuild_structure()
         # delete all pickle files

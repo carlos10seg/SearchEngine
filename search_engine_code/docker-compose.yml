@@ -1,0 +1,30 @@
+version: "2"
+services:
+  searchengine:
+    container_name: searchengine
+    restart: always
+    build: .
+    ports:
+      - "5000:5000"
+    links:
+      - database
+    networks:
+        vpcbr:
+            ipv4_address: 10.5.0.5
+  database:
+    container_name: mongo
+    image: mongo
+    volumes:
+      - ./mongo-volume:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      vpcbr:
+          ipv4_address: 10.5.0.6
+networks:
+  vpcbr:
+      driver: bridge
+      ipam:
+        config:
+          - subnet: 10.5.0.0/16
+            gateway: 10.5.0.1

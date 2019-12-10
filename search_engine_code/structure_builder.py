@@ -5,8 +5,8 @@ from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 from index_structure import IndexStructure
-#nltk.download('punkt')
-#nltk.download('words')
+nltk.download('punkt')
+nltk.download('words')
 
 class StructureBuilder:
     # without stem

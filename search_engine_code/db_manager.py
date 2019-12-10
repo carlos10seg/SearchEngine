@@ -2,10 +2,10 @@ from pymongo import MongoClient
 
 class DbManager:
     def __init__(self):
-        client = MongoClient('localhost', 27017)
-        self.collection_documents_table_name = "collection_documents"
-        self.max_freq_doc_table_name = "max_freq_doc"
-        self.inverted_index_table_name = "inverted_index"
+        client = MongoClient(host='10.5.0.6', port=27017)
+        self.collection_documents_table_name = "collection_documents_sample"
+        self.max_freq_doc_table_name = "max_freq_doc_sample"
+        self.inverted_index_table_name = "inverted_index_sample"
         self.db = client.searchengine
         self.collection_documents = self.db[self.collection_documents_table_name]
         self.max_freq_doc = self.db[self.max_freq_doc_table_name]
