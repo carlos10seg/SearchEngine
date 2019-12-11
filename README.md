@@ -1,6 +1,6 @@
 The application is deployed on [Heroku](https://search-eng.herokuapp.com/)
 
-The detailed project design decisions are on file [Project - Carlos Segura.pdf](Project - Carlos Segura.pdf)
+The detailed project design decisions are on file Project - Carlos Segura.pdf in the root of the project.
 
 You need the document collection and query logs on data folder at the root of the project.
 
