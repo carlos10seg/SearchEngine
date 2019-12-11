@@ -29,3 +29,10 @@ suggestionManager.load_logs()
 
 
 To start the web app just execute: python3 app.py
+
+Steps to deploy the app:
+Run the following command in the src folder
+	docker-compose up --build
+Wait until the two containers (searchengine and mongodb) are up
+Go to http://localhost:5000/build and wait until you get a response from the server.
+Finally, go to http://localhost:5000/ and now you can use the search engine.

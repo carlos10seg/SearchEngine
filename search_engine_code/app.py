@@ -10,6 +10,13 @@ def index():
         ctrl.build_structure()
     return render_template('index.html')
 
+@application.route("/build")
+def build():
+    fileName = "data/top1k.csv"
+    ctrl = Controller()
+    ctrl.build_structure(fileName)
+    return jsonify({"result": 'ok'})
+
 @application.route("/suggestions")
 def get_suggestions():
     ctrl = Controller()

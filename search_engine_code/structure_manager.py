@@ -28,7 +28,7 @@ class StructureManager:
         # delete all pickle files
         pickleManager.remove_all_files()
 
-        with open(fileName) as csvfile:
+        with open(fileName, encoding='utf-8') as csvfile:
             csv_content = csv.reader(csvfile, delimiter=',')
             for row in csv_content:
                 count += 1
