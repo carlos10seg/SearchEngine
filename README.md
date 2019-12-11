@@ -1,4 +1,4 @@
-Steps to deploy the app:
+Steps to deploy the app in Docket container with sample data of 1k documents:
 1. Run the following command in the src folder
 ```bash
 	docker-compose up --build
