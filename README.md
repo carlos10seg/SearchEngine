@@ -1,4 +1,4 @@
-The application is deployed on <a href="https://search-eng.herokuapp.com/" target="_blank">Heroku</a>
+The application is deployed on [Heroku](https://search-eng.herokuapp.com/)
 
 You need the document collection and query logs on data folder at the root of the project.
 
