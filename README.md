@@ -1,4 +1,4 @@
-The application is deployed on [Heroku](https://search-eng.herokuapp.com/)
+The application with sample data of 1k documents is deployed on [Heroku](https://search-eng.herokuapp.com/)
 
 The detailed project design decisions are on file Project - Carlos Segura.pdf in the root of the project.
 
