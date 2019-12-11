@@ -1,5 +1,7 @@
 The application is deployed on [Heroku](https://search-eng.herokuapp.com/)
 
+The detailed project design decisions are on file [Project - Carlos Segura.pdf](Project - Carlos Segura.pdf)
+
 You need the document collection and query logs on data folder at the root of the project.
 
 The Document Collections is in [Wikipedia1.6M](https://drive.google.com/a/u.boisestate.edu/file/d/1M-Ya0Ybnc_4qEJZVIpztAwZvnhMzZAip/view?usp=drive_web)
