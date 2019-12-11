@@ -7,6 +7,8 @@ Steps to deploy the app:
 3. Go to http://localhost:5000/build and wait until you get a response from the server.
 4. Finally, go to http://localhost:5000/ and now you can use the search engine.
 
+The detailed project design decisions are on file Project - Carlos Segura.pdf in the root of the project.
+
 All of our dev stack relies on python for the front-end and back-end in all areas from Text Processing to UI. These are the technologies we use:
 
 * Python 3.7: Our programming language of choice.
