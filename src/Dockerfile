@@ -18,13 +18,4 @@ COPY . /app
 
 EXPOSE 5000
 
-#ENTRYPOINT ["python3"]
-
-#RUN ["chmod", "+x", "start-mongo.sh"]
-#RUN ./start-mongo.sh
-
-# run build_structure
-#RUN python3 commander.py
-#    python3 app.y
-
 CMD ["python3", "app.py"]
